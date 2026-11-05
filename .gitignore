@@ -85,3 +85,9 @@ Source/.DS_Store
 
 # Steamworks
 /Source/ThirdParty/Steamworks
+
+# Blender backup files & Python cache
+*.blend1
+*.blend2
+__pycache__/
+*.pyc
