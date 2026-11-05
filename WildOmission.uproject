@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "5.3",
+	"EngineAssociation": "5.8",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -241,6 +241,14 @@
 			"AdditionalDependencies": [
 				"CoreUObject",
 				"Engine"
+			]
+		},
+		{
+			"Name": "Structures",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"CoreUObject"
 			]
 		},
 		{

@@ -37,7 +37,7 @@ void AWildOmissionGameMode::InitGame(const FString& MapName, const FString& Opti
 	Super::InitGame(MapName, Options, ErrorMessage);
 
 	FString WorldName = UGameplayStatics::ParseOption(Options, "WorldName");
-	UE_LOG(LogTemp, Display, TEXT("Parsed world name in init game: %"), *WorldName);
+	UE_LOG(LogTemp, Display, TEXT("Parsed world name in init game: %s"), *WorldName);
 
 	FriendsOnly = UGameplayStatics::ParseOption(Options, "FriendsOnly") == TEXT("1");
 	const FString GameModeString = UGameplayStatics::ParseOption(Options, "GameMode");
@@ -667,7 +667,7 @@ void AWildOmissionGameMode::LogPlayerInventoryComponents()
 		{
 			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0f, FColor::Orange, FString::Printf(TEXT("%s: %i"), *ItemData.Name.ToString(), ItemData.Quantity));
 		}
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0f, FColor::Green, FString::Printf(TEXT("Player: "), *Character->GetActorNameOrLabel()));
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0f, FColor::Green, FString::Printf(TEXT("Player: %s"), *Character->GetActorNameOrLabel()));
 	}
 }
 
@@ -692,7 +692,7 @@ void AWildOmissionGameMode::LogPlayerInventorySlots()
 		{
 			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0f, FColor::Orange, FString::Printf(TEXT("Index: %i, Item: %s, Quantity: %i"), Slot.Index, *Slot.Item.Name.ToString(), Slot.Item.Quantity));
 		}
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0f, FColor::Green, FString::Printf(TEXT("Player: "), *Character->GetActorNameOrLabel()));
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0f, FColor::Green, FString::Printf(TEXT("Player: %s"), *Character->GetActorNameOrLabel()));
 	}
 }
 
