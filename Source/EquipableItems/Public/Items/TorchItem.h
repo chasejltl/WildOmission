@@ -54,6 +54,10 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	UAnimSequence* OffPose;
 
+	/** Seconds between 1-point durability ticks while burning (default 3.0s = 3x longer burn time). */
+	UPROPERTY(EditDefaultsOnly, Category = "Item")
+	float BurnTickInterval;
+
 	//********Spawned Stuff********
 	UPROPERTY(VisibleAnywhere)
 	UNiagaraComponent* SpawnedFireParticles;

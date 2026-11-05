@@ -29,6 +29,7 @@ ATorchItem::ATorchItem()
 	SpawnedLightComponent = nullptr;
 
 	DamageMultiplier = 0.1f;
+	BurnTickInterval = 3.0f;
 
 	IsBurning = false;
 }
@@ -140,7 +141,7 @@ void ATorchItem::StartFireEffects()
 	{
 		FTimerDelegate DecrementDurabilityTimerDelegate;
 		DecrementDurabilityTimerDelegate.BindUObject(this, &ATorchItem::DecrementDurability);
-		World->GetTimerManager().SetTimer(DecrementDurabilityTimerHandle, DecrementDurabilityTimerDelegate, 1.0f, true);
+		World->GetTimerManager().SetTimer(DecrementDurabilityTimerHandle, DecrementDurabilityTimerDelegate, FMath::Max(0.1f, BurnTickInterval), true);
 	}
 
 	EquipPose = OnPose;

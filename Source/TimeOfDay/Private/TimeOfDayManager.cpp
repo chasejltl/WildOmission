@@ -12,7 +12,8 @@
 #include "Log.h"
 
 static ATimeOfDayManager* Instance = nullptr;
-static const float DAY_NIGHT_SPEED = 0.3f;
+// Default 0.15f gives a 40-minute full day-night cycle (was 0.3f = 20 minutes).
+static const float DAY_NIGHT_SPEED = 0.15f;
 static UMaterialParameterCollection* MPC_Sky = nullptr;
 
 // Sets default values
@@ -29,6 +30,7 @@ ATimeOfDayManager::ATimeOfDayManager()
 	DaysPlayed = 0;
 
 	TimeFrozen = false;
+	DayNightSpeedMultiplier = 1.0f;
 
 	SunriseBroadcasted = false;
 	NoonBroadcasted = false;
@@ -158,7 +160,7 @@ void ATimeOfDayManager::Tick(float DeltaTime)
 		return;
 	}
 
-	TimeOfDay += (DAY_NIGHT_SPEED * DeltaTime / 360.0f);
+	TimeOfDay += (DAY_NIGHT_SPEED * FMath::Max(0.0f, DayNightSpeedMultiplier) * DeltaTime / 360.0f);
 	if (TimeOfDay >= 1.0f)
 	{
 		DaysPlayed += 1;
@@ -214,6 +216,16 @@ void ATimeOfDayManager::SetTimeFrozen(bool InTimeFrozen)
 bool ATimeOfDayManager::IsTimeFrozen() const
 {
 	return TimeFrozen;
+}
+
+void ATimeOfDayManager::SetDayNightSpeedMultiplier(float InMultiplier)
+{
+	DayNightSpeedMultiplier = FMath::Max(0.0f, InMultiplier);
+}
+
+float ATimeOfDayManager::GetDayNightSpeedMultiplier() const
+{
+	return DayNightSpeedMultiplier;
 }
 
 bool ATimeOfDayManager::IsDay() const

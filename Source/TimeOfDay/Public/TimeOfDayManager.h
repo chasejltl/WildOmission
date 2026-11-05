@@ -41,6 +41,12 @@ public:
 	void SetTimeFrozen(bool InTimeFrozen);
 	bool IsTimeFrozen() const;
 
+	UFUNCTION(BlueprintCallable, Category = "TimeOfDay")
+	void SetDayNightSpeedMultiplier(float InMultiplier);
+
+	UFUNCTION(BlueprintPure, Category = "TimeOfDay")
+	float GetDayNightSpeedMultiplier() const;
+
 	FOnTimeSunriseSignature OnTimeSunrise;
 	FOnTimeNoonSignature OnTimeNoon;
 	FOnTimeSunsetSignature OnTimeSunset;
@@ -73,6 +79,9 @@ private:
 	void OnRep_TimeOfDay();
 	
 	bool TimeFrozen;
+
+	UPROPERTY(EditAnywhere, Category = "TimeOfDay")
+	float DayNightSpeedMultiplier;
 
 	bool SunriseBroadcasted;
 	bool NoonBroadcasted;
