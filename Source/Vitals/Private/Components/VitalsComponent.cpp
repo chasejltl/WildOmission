@@ -465,7 +465,11 @@ void UVitalsComponent::ApplyAmbientTemperature(float AmbientCelsius, float Delta
 	}
 
 	const float ShelterWarmth = bIsShelteredOrNearFire ? 18.0f : 0.0f;
-	const float EffectiveAmbient = AmbientCelsius + ColdInsulationCelsius + ShelterWarmth;
+	float EffectiveAmbient = AmbientCelsius + ColdInsulationCelsius + ShelterWarmth;
+	if (bIsShelteredOrNearFire)
+	{
+		EffectiveAmbient = FMath::Max(EffectiveAmbient, 21.0f);
+	}
 
 	if (EffectiveAmbient < 5.0f)
 	{

@@ -159,3 +159,34 @@ Format: **what** changed, **why**, **how it was verified**, **what is next**. De
 
 ### Next
 - **Phase 4 (`feature/p4-weather-physics-and-ai`):** Acid rain, blizzards/sandstorms, body temperature vital & shelter/campfire warmth, tornado structural wind stripping on Twig/Wood, and Scientist/Patrol Helicopter AI Behavior Trees.
+
+
+---
+
+## 2026-11-05 - Phase 4: Extreme Weather, Tornado Structural Wind Physics & Tactical AI
+
+**Branch:** `feature/p4-weather-physics-and-ai`
+
+### What changed & why
+1. **Body Temperature Vital & Extreme Weather Hazard Zones (`Source/Vitals/`, `Source/Weather/Public/Actors/ExtremeWeatherEvents.h`):**
+   - Extended `UVitalsComponent` with `CurrentBodyTemperatureCelsius` (`37.0°C` baseline), `ColdInsulationCelsius`, `bIsShelteredOrNearFire`, `IsHypothermic()` (`< 35.0°C`), `IsHyperthermic()` (`> 39.5°C`), and `ApplyAmbientTemperature(float AmbientCelsius, float DeltaSeconds)` (respecting `UServerRules::bTemperatureEnabled`).
+   - Added `EExtremeWeatherType`, `FExtremeWeatherProfile`, and `AExtremeWeatherHazardZone` (`AcidRain` dealing `1.5 HP/s` corrosion unsheltered + `2.0 rads/s`, `Blizzard` at `-18°C`, `Sandstorm` at `46°C`, and `Thunderstorm` at `14°C`).
+2. **Tornado Structural Wind Stripping & Weather Deployables (`Source/Deployables/Public/Deployables/BuildingBlock.h`, `WeatherDeployables.h`):**
+   - Added `FBuildingTierRules::GetWindDamageMultiplierForTier` (`Twig=3.0x`, `Wood=1.5x`, `Stone=0.25x`, `SheetMetal=0.05x`, `Armored=0.0x`) and `ABuildingBlock::ApplyWindDamage` (respecting `UServerRules::bStructuralWindDestructionEnabled`).
+   - Added `ARainCollectorDeployable` (accumulates rainwater during storms and restores player Thirst) and `AWeatherRadarDeployable` (`5W` electrical consumer that detects active weather hazard zones).
+   - Registered `RainCollector`, `WeatherRadar`, and `FragGrenade` in `UInventoryComponent` and `UCraftingComponent`.
+3. **Tactical Scientist AI & Patrol Helicopter World Boss (`Source/WildOmissionAI/Public/Characters/ScientistAICharacter.h`):**
+   - Implemented `AScientistAICharacter` with sight (`3500 cm`) and sound (`ReportHeardSound` within `2500 cm`) perception and `EvaluateTacticalState` (`Patrol`, `EngageRanged`, `SeekCover`, `ThrowGrenade`, `HealWithSyringe`, `FlankTarget`), governed by `UServerRules::bAdvancedAIEnabled`.
+   - Implemented `APatrolHelicopterAI` with Rust threat evaluation (`IsPlayerHostileThreat`: ignores naked/primitive players, engages players with `>= 1` ranged weapon or `> 2` clothing pieces) and dual weakspot rotor destruction (`MainRotorHealth = 1000`, `TailRotorHealth = 500`, `HullHealth = 10000`).
+4. **Blender 5.2 Low-Poly Assets (`Art/Blender/generate_phase4_assets.py`):**
+   - Generated `.blend` and `.fbx` meshes for `SM_RainCollector`, `SM_WeatherRadar`, `SM_ScientistHazmatRifle`, `SM_PatrolHelicopter`, and `SM_FragGrenade`.
+
+### How it was verified
+- Compiled `WildOmissionEditor Win64 Development` on UE 5.8.4.
+- Executed headless UE 5.8 automation test suite (`WildOmission.Phase4` in `Source/WildOmissionCore/Tests/Phase4WeatherAndAITests.cpp`):
+  - `WildOmission.Phase4.WeatherAndTemperature`
+  - `WildOmission.Phase4.TornadoStructuralWindStripping`
+  - `WildOmission.Phase4.ScientistAndPatrolHelicopterAI`
+
+### Next
+- **Phase 5 (`feature/p5-polish-and-release`):** Full end-to-end automation suite verification across Phases 1–4, server admin & modding handbook, and player survival guide.
