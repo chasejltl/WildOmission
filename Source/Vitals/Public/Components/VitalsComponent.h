@@ -114,6 +114,33 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Vitals")
 	void StepEnvironmentalVitals(float DeltaSeconds);
 
+	// --- Phase 4: Body Temperature, Cold/Heat Insulation & Shelter/Campfire Warmth ---
+
+	UFUNCTION(BlueprintCallable, Category = "Vitals|Temperature")
+	void SetColdInsulation(float InCelsiusBonus);
+
+	UFUNCTION(BlueprintPure, Category = "Vitals|Temperature")
+	float GetColdInsulation() const { return ColdInsulationCelsius; }
+
+	UFUNCTION(BlueprintCallable, Category = "Vitals|Temperature")
+	void SetShelteredOrNearFire(bool bInSheltered);
+
+	UFUNCTION(BlueprintPure, Category = "Vitals|Temperature")
+	bool IsShelteredOrNearFire() const { return bIsShelteredOrNearFire; }
+
+	UFUNCTION(BlueprintPure, Category = "Vitals|Temperature")
+	float GetBodyTemperature() const { return CurrentBodyTemperatureCelsius; }
+
+	UFUNCTION(BlueprintPure, Category = "Vitals|Temperature")
+	bool IsHypothermic() const { return CurrentBodyTemperatureCelsius < 35.0f; }
+
+	UFUNCTION(BlueprintPure, Category = "Vitals|Temperature")
+	bool IsHyperthermic() const { return CurrentBodyTemperatureCelsius > 39.5f; }
+
+	/** Applies ambient weather temperature (°C) over DeltaSeconds, mitigated by clothing insulation and shelter/campfire warmth. */
+	UFUNCTION(BlueprintCallable, Category = "Vitals|Temperature")
+	void ApplyAmbientTemperature(float AmbientCelsius, float DeltaSeconds);
+
 	FOnBeginThirstSignature OnBeginThirst;
 	FOnEndThirstSignature OnEndThirst;
 
@@ -179,7 +206,12 @@ private:
 	UPROPERTY(Replicated)
 	float CurrentBleeding;
 
+	UPROPERTY(Replicated)
+	float CurrentBodyTemperatureCelsius;
+
 	float EquippedRadiationProtection;
+	float ColdInsulationCelsius;
+	bool bIsShelteredOrNearFire;
 
 	bool HealthCanDeplete;
 	bool ThirstCanDeplete;
