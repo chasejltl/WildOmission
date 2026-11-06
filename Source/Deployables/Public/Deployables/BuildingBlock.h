@@ -148,6 +148,25 @@ struct DEPLOYABLES_API FBuildingTierRules
 		}
 		return 0.33f;
 	}
+
+	static float GetWindDamageMultiplierForTier(EBuildingTier Tier)
+	{
+		switch (Tier)
+		{
+		case EBuildingTier::Twig:
+			return 3.0f;
+		case EBuildingTier::Wood:
+			return 1.5f;
+		case EBuildingTier::Stone:
+			return 0.25f;
+		case EBuildingTier::SheetMetal:
+			return 0.05f;
+		case EBuildingTier::Armored:
+			return 0.0f;
+		default:
+			return 1.0f;
+		}
+	}
 };
 
 UCLASS()
@@ -160,6 +179,7 @@ public:
 
 	virtual void OnSpawn() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void ApplyWindDamage(AActor* WindCauser, float DamageMultiplier = 1.0f) override;
 	virtual float TakeDamage(float DamageAmount, const struct FDamageEvent& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
 	static const TArray<ABuildingBlock*>& GetAllBuildingBlocks();

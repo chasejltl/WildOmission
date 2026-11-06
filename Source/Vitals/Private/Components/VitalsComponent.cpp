@@ -46,7 +46,10 @@ UVitalsComponent::UVitalsComponent()
 
 	CurrentRadiation = 0.0f;
 	CurrentBleeding = 0.0f;
+	CurrentBodyTemperatureCelsius = 37.0f;
 	EquippedRadiationProtection = 0.0f;
+	ColdInsulationCelsius = 0.0f;
+	bIsShelteredOrNearFire = false;
 
 	ConstructorHelpers::FObjectFinder<USoundBase> DefaultHurtSoundObject(TEXT("/Game/WildOmissionCore/Characters/Human/Audio/Damage/Human_HurtGeneric_Cue"));
 	if (!DefaultHurtSoundObject.Succeeded())
@@ -88,6 +91,7 @@ void UVitalsComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME_CONDITION(UVitalsComponent, CurrentHunger, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UVitalsComponent, CurrentRadiation, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UVitalsComponent, CurrentBleeding, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UVitalsComponent, CurrentBodyTemperatureCelsius, COND_OwnerOnly);
 }
 
 void UVitalsComponent::CalculateDepletion()
@@ -433,5 +437,70 @@ void UVitalsComponent::StepEnvironmentalVitals(float DeltaSeconds)
 		const float BleedDamage = (CurrentBleeding * 0.20f) * DeltaSeconds;
 		CurrentHealth = FMath::Clamp(CurrentHealth - BleedDamage, 0.0f, MaxHealth);
 		CurrentBleeding = FMath::Max(0.0f, CurrentBleeding - (1.0f * DeltaSeconds));
+	}
+}
+
+void UVitalsComponent::SetColdInsulation(float InCelsiusBonus)
+{
+	ColdInsulationCelsius = InCelsiusBonus;
+}
+
+void UVitalsComponent::SetShelteredOrNearFire(bool bInSheltered)
+{
+	bIsShelteredOrNearFire = bInSheltered;
+}
+
+void UVitalsComponent::ApplyAmbientTemperature(float AmbientCelsius, float DeltaSeconds)
+{
+	if (DeltaSeconds <= 0.0f)
+	{
+		return;
+	}
+
+	const UServerRules* Rules = UServerRules::Get(this);
+	if (Rules != nullptr && !Rules->bTemperatureEnabled)
+	{
+		CurrentBodyTemperatureCelsius = 37.0f;
+		return;
+	}
+
+	const float ShelterWarmth = bIsShelteredOrNearFire ? 18.0f : 0.0f;
+	float EffectiveAmbient = AmbientCelsius + ColdInsulationCelsius + ShelterWarmth;
+	if (bIsShelteredOrNearFire)
+	{
+		EffectiveAmbient = FMath::Max(EffectiveAmbient, 21.0f);
+	}
+
+	if (EffectiveAmbient < 5.0f)
+	{
+		// Freezing environment lowers core body temperature below 35°C (Hypothermia)
+		const float ColdDrop = ((5.0f - EffectiveAmbient) * 0.12f) * DeltaSeconds;
+		CurrentBodyTemperatureCelsius = FMath::Clamp(CurrentBodyTemperatureCelsius - ColdDrop, 28.0f, 37.0f);
+	}
+	else if (EffectiveAmbient > 38.0f && !bIsShelteredOrNearFire)
+	{
+		// Extreme desert/sandstorm heat raises core body temperature above 39.5°C (Hyperthermia)
+		const float HeatRise = ((EffectiveAmbient - 38.0f) * 0.10f) * DeltaSeconds;
+		CurrentBodyTemperatureCelsius = FMath::Clamp(CurrentBodyTemperatureCelsius + HeatRise, 37.0f, 43.0f);
+	}
+	else
+	{
+		// Recover core temperature toward normal 37.0°C
+		CurrentBodyTemperatureCelsius = FMath::FInterpConstantTo(CurrentBodyTemperatureCelsius, 37.0f, DeltaSeconds, 0.5f);
+	}
+
+	if (HealthCanDeplete)
+	{
+		if (IsHypothermic())
+		{
+			const float ColdDamage = (35.0f - CurrentBodyTemperatureCelsius) * 1.25f * DeltaSeconds;
+			CurrentHealth = FMath::Clamp(CurrentHealth - ColdDamage, 0.0f, MaxHealth);
+		}
+		else if (IsHyperthermic())
+		{
+			const float HeatDamage = (CurrentBodyTemperatureCelsius - 39.5f) * 1.0f * DeltaSeconds;
+			CurrentHealth = FMath::Clamp(CurrentHealth - HeatDamage, 0.0f, MaxHealth);
+			AddThirst(-1.5f * DeltaSeconds);
+		}
 	}
 }

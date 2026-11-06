@@ -117,6 +117,11 @@ void UCraftingComponent::EnsureDefaultPhase1RecipesRegistered()
 	AddRecipe(TEXT("RoadSignKilt"), 1, 15, 2, { { TEXT("Cloth"), 25 }, { TEXT("HighQualityMetal"), 3 }, { TEXT("MetalFragments"), 100 } }, 125);
 	AddRecipe(TEXT("MetalFacemask"), 1, 20, 3, { { TEXT("Cloth"), 15 }, { TEXT("HighQualityMetal"), 15 } }, 500);
 	AddRecipe(TEXT("MetalChestplate"), 1, 25, 3, { { TEXT("Cloth"), 25 }, { TEXT("HighQualityMetal"), 25 } }, 500);
+
+	// Phase 4: Weather Adaptation Deployables & Grenades
+	AddRecipe(TEXT("RainCollector"), 1, 15, 1, { { TEXT("Wood"), 250 }, { TEXT("Cloth"), 30 }, { TEXT("MetalFragments"), 50 } });
+	AddRecipe(TEXT("WeatherRadar"), 1, 20, 2, { { TEXT("HighQualityMetal"), 10 }, { TEXT("MetalFragments"), 200 }, { TEXT("Scrap"), 100 } }, 125);
+	AddRecipe(TEXT("FragGrenade"), 1, 10, 2, { { TEXT("Gunpowder"), 30 }, { TEXT("MetalFragments"), 40 } }, 75);
 }
 
 void UCraftingComponent::RegisterRecipe(const FName& RecipeName, const FCraftingRecipe& RecipeData)

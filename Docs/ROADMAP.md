@@ -148,7 +148,7 @@ Estimates are "focused work sessions" (~half a day) and are rough.
 - **Monuments & rad towns:** extend `Structure`/`ChunkManager` to place Airfield, Power Plant, Military Tunnels with locked crates, guards, radiation zones. Many new Blender kits in the flat low-poly style.
 - **Verification:** radiation drains HP without hazmat; loot tables by monument tier; chunk-streaming performance.
 
-### Phase 4: Weather physics & advanced AI (≈ 20–25 sessions)
+### Phase 4: Weather physics & advanced AI (✅ Completed)
 - **Weather:** acid rain, sandstorm/blizzard, **temperature** vital + clothing insulation, campfire warmth, rain collectors / weather radar. Extend `AStorm`/`WeatherManager`.
 - **Structural wind damage:** use `DamagedByWind` / `WindParameters` so tornadoes and high winds strip Twig/Wood panels.
 - **AI:** Scientists via Behavior Trees (cover, blind fire, grenades, flank, heal) on `WildOmissionAI`/`Monsters`; EQS cover queries, AI hearing; patrol helicopter and heavy squads at monuments.
