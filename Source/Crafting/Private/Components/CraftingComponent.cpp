@@ -4,12 +4,14 @@
 #include "Components/CraftingComponent.h"
 #include "Components/InventoryComponent.h"
 #include "Components/InventoryManipulatorComponent.h"
+#include "ServerRules.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Log.h"
 
 static UDataTable* RecipeDataTable = nullptr;
 static TMap<FName, FCraftingRecipe> RegisteredRecipes;
 static bool bPhase1RecipesSeeded = false;
+static TFunction<uint8(const FVector&)> ProximityWorkbenchQueryFunc;
 
 // Sets default values for this component's properties
 UCraftingComponent::UCraftingComponent()
@@ -36,12 +38,13 @@ void UCraftingComponent::EnsureDefaultPhase1RecipesRegistered()
 	}
 	bPhase1RecipesSeeded = true;
 
-	auto AddRecipe = [](const FName& Name, int32 YieldQty, int32 CraftSeconds, uint8 WorkbenchTier, const TArray<TPair<FName, int32>>& Ings)
+	auto AddRecipe = [](const FName& Name, int32 YieldQty, int32 CraftSeconds, uint8 WorkbenchTier, const TArray<TPair<FName, int32>>& Ings, int32 ScrapCost = 0)
 	{
 		FCraftingRecipe Recipe;
 		Recipe.YieldQuantity = YieldQty;
 		Recipe.CraftTime = CraftSeconds;
 		Recipe.RequiredWorkbenchTier = WorkbenchTier;
+		Recipe.ResearchScrapCost = ScrapCost;
 		for (const TPair<FName, int32>& Pair : Ings)
 		{
 			FInventoryItem Ing;
@@ -74,6 +77,28 @@ void UCraftingComponent::EnsureDefaultPhase1RecipesRegistered()
 	AddRecipe(TEXT("BoneArrow"), 3, 3, 0, { { TEXT("Wood"), 25 }, { TEXT("BoneFragments"), 10 } });
 	AddRecipe(TEXT("PistolBullet"), 4, 5, 1, { { TEXT("MetalFragments"), 10 }, { TEXT("Gunpowder"), 5 } });
 	AddRecipe(TEXT("RifleBullet"), 3, 8, 2, { { TEXT("MetalFragments"), 10 }, { TEXT("Gunpowder"), 10 } });
+
+	// Phase 2: Workbenches & Research Table
+	AddRecipe(TEXT("WorkbenchT1"), 1, 15, 0, { { TEXT("Wood"), 500 }, { TEXT("MetalFragments"), 100 }, { TEXT("Scrap"), 50 } });
+	AddRecipe(TEXT("WorkbenchT2"), 1, 30, 1, { { TEXT("MetalFragments"), 500 }, { TEXT("HighQualityMetal"), 20 }, { TEXT("Scrap"), 500 } });
+	AddRecipe(TEXT("WorkbenchT3"), 1, 45, 2, { { TEXT("MetalFragments"), 1000 }, { TEXT("HighQualityMetal"), 100 }, { TEXT("Scrap"), 1250 } });
+	AddRecipe(TEXT("ResearchTable"), 1, 20, 1, { { TEXT("MetalFragments"), 200 }, { TEXT("Scrap"), 75 } });
+
+	// Phase 2: Locks, Storage, Smelters & Refineries
+	AddRecipe(TEXT("KeyLock"), 1, 5, 0, { { TEXT("Wood"), 100 } });
+	AddRecipe(TEXT("CodeLock"), 1, 10, 1, { { TEXT("MetalFragments"), 100 } });
+	AddRecipe(TEXT("LargeStorageBox"), 1, 10, 1, { { TEXT("Wood"), 250 }, { TEXT("MetalFragments"), 50 } });
+	AddRecipe(TEXT("SmallFurnace"), 1, 10, 0, { { TEXT("Stone"), 200 }, { TEXT("Wood"), 100 }, { TEXT("LowGradeFuel"), 50 } });
+	AddRecipe(TEXT("LargeFurnace"), 1, 25, 2, { { TEXT("Stone"), 500 }, { TEXT("Wood"), 200 }, { TEXT("LowGradeFuel"), 75 } }, 125);
+	AddRecipe(TEXT("OilRefinery"), 1, 20, 1, { { TEXT("Wood"), 200 }, { TEXT("MetalFragments"), 500 }, { TEXT("LowGradeFuel"), 50 } }, 125);
+
+	// Phase 2: Electricity & Automated Defenses (require Research Table blueprint unlock when bWorkbenchTaxEnabled is active)
+	AddRecipe(TEXT("SolarPanel"), 1, 15, 1, { { TEXT("HighQualityMetal"), 5 }, { TEXT("MetalFragments"), 100 } }, 75);
+	AddRecipe(TEXT("SmallBattery"), 1, 15, 1, { { TEXT("HighQualityMetal"), 5 } }, 75);
+	AddRecipe(TEXT("ElectricSwitch"), 1, 5, 1, { { TEXT("HighQualityMetal"), 1 }, { TEXT("MetalFragments"), 25 } }, 20);
+	AddRecipe(TEXT("ElectricSplitter"), 1, 5, 1, { { TEXT("HighQualityMetal"), 1 }, { TEXT("MetalFragments"), 50 } }, 20);
+	AddRecipe(TEXT("ShotgunTrap"), 1, 20, 1, { { TEXT("Wood"), 300 }, { TEXT("MetalFragments"), 150 } }, 75);
+	AddRecipe(TEXT("AutoTurret"), 1, 30, 2, { { TEXT("HighQualityMetal"), 40 }, { TEXT("MetalFragments"), 500 } }, 500);
 }
 
 void UCraftingComponent::RegisterRecipe(const FName& RecipeName, const FCraftingRecipe& RecipeData)
@@ -92,6 +117,118 @@ uint8 UCraftingComponent::GetHighestAvailableWorkbenchTier() const
 	return HighestAvailableWorkbenchTier;
 }
 
+void UCraftingComponent::SetProximityWorkbenchQuery(TFunction<uint8(const FVector&)> InQueryFunc)
+{
+	ProximityWorkbenchQueryFunc = MoveTemp(InQueryFunc);
+}
+
+uint8 UCraftingComponent::QueryProximityWorkbenchTier(const FVector& Location)
+{
+	if (ProximityWorkbenchQueryFunc)
+	{
+		return ProximityWorkbenchQueryFunc(Location);
+	}
+	return 0;
+}
+
+uint8 UCraftingComponent::GetEffectiveWorkbenchTier() const
+{
+	uint8 EffectiveTier = HighestAvailableWorkbenchTier;
+	if (const AActor* OwnerActor = GetOwner())
+	{
+		EffectiveTier = FMath::Max(EffectiveTier, QueryProximityWorkbenchTier(OwnerActor->GetActorLocation()));
+	}
+	return EffectiveTier;
+}
+
+void UCraftingComponent::UnlockBlueprint(const FName& RecipeName)
+{
+	UnlockedBlueprints.Add(RecipeName);
+}
+
+bool UCraftingComponent::IsBlueprintUnlocked(const FName& RecipeName) const
+{
+	const FCraftingRecipe* RecipeData = GetRecipe(RecipeName);
+	if (RecipeData == nullptr)
+	{
+		return false;
+	}
+
+	if (RecipeData->ResearchScrapCost <= 0)
+	{
+		return true;
+	}
+
+	const UServerRules* Rules = UServerRules::Get(this);
+	if (Rules != nullptr && !Rules->bWorkbenchTierGatingEnabled)
+	{
+		return true;
+	}
+
+	return UnlockedBlueprints.Contains(RecipeName);
+}
+
+bool UCraftingComponent::ResearchRecipeWithScrap(const FName& RecipeName)
+{
+	const FCraftingRecipe* RecipeData = GetRecipe(RecipeName);
+	if (RecipeData == nullptr)
+	{
+		return false;
+	}
+
+	if (IsBlueprintUnlocked(RecipeName))
+	{
+		return true;
+	}
+
+	AActor* OwnerActor = GetOwner();
+	if (OwnerActor == nullptr)
+	{
+		return false;
+	}
+
+	UInventoryComponent* OwnerInventory = OwnerActor->FindComponentByClass<UInventoryComponent>();
+	if (OwnerInventory == nullptr || OwnerInventory->GetContents() == nullptr)
+	{
+		return false;
+	}
+
+	const int32 ScrapRequired = RecipeData->ResearchScrapCost;
+	if (OwnerInventory->GetContents()->GetItemQuantity(TEXT("Scrap")) < ScrapRequired)
+	{
+		return false;
+	}
+
+	FInventoryItem ScrapCostItem;
+	ScrapCostItem.Name = TEXT("Scrap");
+	ScrapCostItem.Quantity = ScrapRequired;
+	OwnerInventory->RemoveItem(ScrapCostItem);
+
+	UnlockBlueprint(RecipeName);
+	return true;
+}
+
+bool UCraftingComponent::CanCraftRecipe(const FName& RecipeName) const
+{
+	const FCraftingRecipe* RecipeData = GetRecipe(RecipeName);
+	if (RecipeData == nullptr)
+	{
+		return false;
+	}
+
+	if (RecipeData->RequiredWorkbenchTier > GetEffectiveWorkbenchTier())
+	{
+		return false;
+	}
+
+	if (!IsBlueprintUnlocked(RecipeName))
+	{
+		return false;
+	}
+
+	return true;
+}
+
 void UCraftingComponent::Server_CraftItem_Implementation(const FName& ItemToCraft)
 {
 	AActor* OwnerActor = GetOwner();
@@ -101,10 +238,10 @@ void UCraftingComponent::Server_CraftItem_Implementation(const FName& ItemToCraf
 		return;
 	}
 
-	if (RecipeData->RequiredWorkbenchTier > HighestAvailableWorkbenchTier)
+	if (!CanCraftRecipe(ItemToCraft))
 	{
-		UE_LOG(LogCrafting, Display, TEXT("Cannot craft %s: requires Workbench Tier %d (have Tier %d)."),
-			*ItemToCraft.ToString(), RecipeData->RequiredWorkbenchTier, HighestAvailableWorkbenchTier);
+		UE_LOG(LogCrafting, Display, TEXT("Cannot craft %s: requires Workbench Tier %d (have Tier %d) and unlocked blueprint."),
+			*ItemToCraft.ToString(), RecipeData->RequiredWorkbenchTier, GetEffectiveWorkbenchTier());
 		return;
 	}
 

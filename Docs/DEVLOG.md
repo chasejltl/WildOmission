@@ -96,3 +96,36 @@ Format: **what** changed, **why**, **how it was verified**, **what is next**. De
 
 ### Next
 - **Phase 2 (`feature/p2-industrial-and-upkeep`):** Workbenches (Tier 1/2/3), Tool Cupboard 24h Upkeep & Territory Privilege enforcement, Code/Key Locks, Furnaces/Refineries, and Electricity Grid (`Generator`, `Switch`, `Splitter`, `Auto-Turret`, `Shotgun Trap`).
+
+---
+
+## 2026-11-05 - Phase 2: Industrialization, Workbenches, Base Upkeep & Electricity
+
+**Branch:** `feature/p2-industrial-and-upkeep`
+
+### What changed & why
+1. **Workbenches (Tiers 1, 2, 3), Research Table & Scrap Blueprints (`Source/Deployables/Public/Deployables/WorkbenchDeployable.h`, `Source/Crafting/`):**
+   - Added `AWorkbenchDeployable` (`AWorkbenchTier1`, `AWorkbenchTier2`, `AWorkbenchTier3`) with automatic `400 cm` proximity detection hooked into `UCraftingComponent::GetEffectiveWorkbenchTier()`.
+   - Added `ResearchScrapCost` to `FCraftingRecipe` and `UnlockBlueprint` / `IsBlueprintUnlocked` / `ResearchRecipeWithScrap` / `CanCraftRecipe` to `UCraftingComponent`, respecting `UServerRules::bWorkbenchTaxEnabled`.
+   - Added `AResearchTableDeployable` allowing players to spend `Scrap` to permanently unlock industrial/electrical recipes.
+2. **Deployables Expansion (`Source/Locks/Public/Locks/KeyLock.h`, `Source/Deployables/Public/Deployables/IndustrialDeployables.h`):**
+   - Added `AKeyLock` (`100 Wood` early-game lock with direct owner lock/unlock interaction).
+   - Added `ALargeStorageBox` (`30` slots), `ASmallFurnaceDeployable` (`6` slots, `3.0s` smelt cycle), `ALargeFurnaceDeployable` (`18` slots, `1.5s` smelt cycle = 2x speed), and `AOilRefineryDeployable` (`1 CrudeOil -> 3 LowGradeFuel`).
+3. **Tool Cupboard 24-Hour Upkeep & Starvation Decay (`Source/Deployables/Public/Deployables/ToolCupboard.h`, `BuildingBlock.h`):**
+   - Added 18-slot `UpkeepInventory` to `AToolCupboard` and bracketed daily upkeep taxation (`10% / 15% / 20% / 33%` scaled by `UServerRules::UpkeepRateMultiplier`).
+   - Implemented `ProcessUpkeepCycle(float HoursElapsed)` and `GetProtectedHoursRemaining()`, deducting `Wood`, `Stone`, `MetalFragments`, and `HighQualityMetal` and applying tier-scaled decay damage (`Wood=3h`, `Stone=5h`, `SheetMetal=8h`, `Armored=12h`) to starving `ABuildingBlock` actors when `UServerRules::bBuildingDecayEnabled` is active.
+4. **Electricity Node Graph & Automated Base Defenses (`Source/Deployables/Public/Components/ElectricNodeComponent.h`, `ElectricalDeployables.h`):**
+   - Implemented `UElectricNodeComponent` supporting `Generator`, `Battery`, `Switch`, `Splitter`, and `Consumer` nodes with cycle-safe power propagation and `UServerRules::bElectricityEnabled` support.
+   - Added `ASolarPanelDeployable` (`20W`), `ASmallBatteryDeployable` (`10W` output), `AElectricSwitchDeployable`, `AElectricSplitterDeployable` (3-way), `AAutoTurretDeployable` (`10W` consumer, `35` damage, TC/turret authorization check), and `AShotgunTrapDeployable` (`0W` mechanical trap, `120` buckshot damage).
+5. **Blender 5.2 Low-Poly Assets (`Art/Blender/generate_phase2_assets.py`):**
+   - Generated `.blend` and `.fbx` meshes for `SM_WorkbenchT1`, `SM_WorkbenchT2`, `SM_WorkbenchT3`, `SM_ResearchTable`, `SM_KeyLock`, `SM_LargeStorageBox`, `SM_LargeFurnace`, `SM_OilRefinery`, `SM_SolarPanel`, `SM_AutoTurret`, and `SM_ShotgunTrap`.
+
+### How it was verified
+- Compiled `WildOmissionEditor Win64 Development` on UE 5.8.4.
+- Added and executed headless UE 5.8 automation tests (`WildOmission.Phase2` in `Source/WildOmissionCore/Tests/Phase2IndustrialTests.cpp`):
+  - `WildOmission.Phase2.WorkbenchesAndResearch`
+  - `WildOmission.Phase2.ToolCupboardUpkeep`
+  - `WildOmission.Phase2.ElectricityAndTraps`
+
+### Next
+- **Phase 3 (`feature/p3-ballistics-vitals-and-monuments`):** Military-grade firearms (Bolt-Action Rifle, Custom SMG, Assault Rifle recoil/ballistics, C4 & Rocket raiding), Medical & Hazmat/Armor clothing modifiers, Radiation & Bleeding vitals, Hemp/Corn/Pumpkin crop genetics, and procedural Monuments (Airfield, Power Plant, Military Tunnels).

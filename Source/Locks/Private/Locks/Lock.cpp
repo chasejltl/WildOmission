@@ -105,6 +105,12 @@ void ALock::ClearCode()
 	OnRep_Locked();
 }
 
+void ALock::SetLockedState(bool bInLocked)
+{
+	Locked = bInLocked;
+	OnRep_Locked();
+}
+
 FString ALock::GetCode() const
 {
 	return Code;

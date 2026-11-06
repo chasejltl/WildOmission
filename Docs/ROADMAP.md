@@ -132,7 +132,7 @@ Estimates are "focused work sessions" (~half a day) and are rough.
 - **Building tiers:** add **Twig** (decays, hand-tool breakable) → Wood → Stone → Sheet Metal → Armored. Per-tier HP and damage multipliers on `ABuildingBlock::Upgrade`. Includes dev's "foundation steps".
 - **Verification:** automation tests for yield-vs-tool-tier and upgrade chain; manual checklist.
 
-### Phase 2: Industrial crafting, electricity, base fortification (≈ 20–25 sessions)
+### Phase 2: Industrial crafting, electricity, base fortification (✅ Completed)
 - **Workbenches T1–T3** + research/blueprints; gate recipes in `UCraftingComponent`.
 - **Deployables:** key locks, large wooden box, small & large furnace, refineries.
 - **Tool Cupboard upkeep:** per-tier upkeep cost, 24 h (configurable) tax from TC inventory, decay when empty; privilege blocks foreign placement within `Range`. Server-authoritative; persisted via `SaveSystem`.

@@ -32,7 +32,19 @@ public:
 
 	void SetHighestAvailableWorkbenchTier(uint8 InTier);
 	uint8 GetHighestAvailableWorkbenchTier() const;
+	uint8 GetEffectiveWorkbenchTier() const;
+
+	void UnlockBlueprint(const FName& RecipeName);
+	bool IsBlueprintUnlocked(const FName& RecipeName) const;
+	bool ResearchRecipeWithScrap(const FName& RecipeName);
+	bool CanCraftRecipe(const FName& RecipeName) const;
+
+	static void SetProximityWorkbenchQuery(TFunction<uint8(const FVector&)> InQueryFunc);
+	static uint8 QueryProximityWorkbenchTier(const FVector& Location);
 
 private:
 	uint8 HighestAvailableWorkbenchTier;
+
+	UPROPERTY(SaveGame)
+	TSet<FName> UnlockedBlueprints;
 };

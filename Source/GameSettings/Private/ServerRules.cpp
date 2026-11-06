@@ -54,6 +54,7 @@ void UServerRules::ResetToDefaults()
 	bPvPEnabled = true;
 	bOfflineRaidProtection = false;
 	bWorkbenchTierGatingEnabled = true;
+	bElectricityEnabled = true;
 
 	DayNightSpeedMultiplier = 1.0f;
 	TorchBurnTickSeconds = 3.0f;

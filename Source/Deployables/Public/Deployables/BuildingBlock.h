@@ -91,6 +91,63 @@ struct DEPLOYABLES_API FBuildingTierRules
 		}
 		return FMath::Max(0.0f, 1.0f - (static_cast<float>(SupportHopsFromFoundation) * LossPerHop));
 	}
+
+	static FName GetTierUpkeepResource(EBuildingTier Tier)
+	{
+		switch (Tier)
+		{
+		case EBuildingTier::Wood:
+			return TEXT("Wood");
+		case EBuildingTier::Stone:
+			return TEXT("Stone");
+		case EBuildingTier::SheetMetal:
+			return TEXT("MetalFragments");
+		case EBuildingTier::Armored:
+			return TEXT("HighQualityMetal");
+		default:
+			return NAME_None;
+		}
+	}
+
+	static float GetTierDecayDurationHours(EBuildingTier Tier)
+	{
+		switch (Tier)
+		{
+		case EBuildingTier::Twig:
+			return 1.0f;
+		case EBuildingTier::Wood:
+			return 3.0f;
+		case EBuildingTier::Stone:
+			return 5.0f;
+		case EBuildingTier::SheetMetal:
+			return 8.0f;
+		case EBuildingTier::Armored:
+			return 12.0f;
+		default:
+			return 3.0f;
+		}
+	}
+
+	static float GetUpkeepTaxBracketRate(int32 TotalBlockCount)
+	{
+		if (TotalBlockCount <= 0)
+		{
+			return 0.0f;
+		}
+		if (TotalBlockCount <= 15)
+		{
+			return 0.10f;
+		}
+		if (TotalBlockCount <= 50)
+		{
+			return 0.15f;
+		}
+		if (TotalBlockCount <= 100)
+		{
+			return 0.20f;
+		}
+		return 0.33f;
+	}
 };
 
 UCLASS()
@@ -101,8 +158,11 @@ class DEPLOYABLES_API ABuildingBlock : public ADeployable
 public:
 	ABuildingBlock();
 
+	virtual void OnSpawn() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual float TakeDamage(float DamageAmount, const struct FDamageEvent& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
+	static const TArray<ABuildingBlock*>& GetAllBuildingBlocks();
 
 	void Upgrade();
 	bool IsUpgradable() const;
@@ -134,6 +194,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Deployable")

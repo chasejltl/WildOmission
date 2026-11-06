@@ -8,6 +8,6 @@ public class Deployables : ModuleRules
     {
         PublicDependencyModuleNames.AddRange(new string[] { "Engine", "UMG", "EquipableItems", "Durability", "Inventory", "SavableObject" });
         PrivateDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "CoreOnline", "InputCore", "SlateCore", "NavigationSystem",
-            "Niagara", "Crafting", "Despawner", "GatherableResources", "Interaction", "Locks", "Weather", "WorldGeneration", "TimeOfDay" });
+            "Niagara", "Crafting", "Despawner", "GatherableResources", "Interaction", "Locks", "Weather", "WorldGeneration", "TimeOfDay", "GameSettings" });
     }
 }
