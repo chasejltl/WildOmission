@@ -51,6 +51,9 @@ public:
 	bool IsTurnedOn() const;
 
 	void EnsureDefaultSmeltingRules();
+	float GetSmeltTimeSeconds() const { return SmeltTimeSeconds; }
+	const TArray<FSmeltResult>& GetSmeltables() const { return Smeltables; }
+	void TriggerSmeltCycle() { OnSmelt(); }
 
 	FOnItemSmeltedSignature OnItemSmelted;
 

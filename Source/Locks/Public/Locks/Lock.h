@@ -26,6 +26,7 @@ public:
 
 	void SetCode(const FString& NewCode, const FString& CodeSetterUniqueID = TEXT(""));
 	void ClearCode();
+	void SetLockedState(bool bInLocked);
 
 	bool IsLocked() const;
 	
