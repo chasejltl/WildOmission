@@ -10,9 +10,9 @@
 UENUM(BlueprintType)
 enum class EMonumentTier : uint8
 {
-	Tier1_Airfield = 1			UMETA(DisplayName = "Tier 1 - Airfield"),
-	Tier2_PowerPlant = 2		UMETA(DisplayName = "Tier 2 - Power Plant"),
-	Tier3_MilitaryTunnels = 3	UMETA(DisplayName = "Tier 3 - Military Tunnels")
+	Tier1_Airfield = 0			UMETA(DisplayName = "Tier 1 - Airfield"),
+	Tier2_PowerPlant = 1		UMETA(DisplayName = "Tier 2 - Power Plant"),
+	Tier3_MilitaryTunnels = 2	UMETA(DisplayName = "Tier 3 - Military Tunnels")
 };
 
 /**

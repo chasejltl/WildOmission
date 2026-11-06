@@ -129,3 +129,33 @@ Format: **what** changed, **why**, **how it was verified**, **what is next**. De
 
 ### Next
 - **Phase 3 (`feature/p3-ballistics-vitals-and-monuments`):** Military-grade firearms (Bolt-Action Rifle, Custom SMG, Assault Rifle recoil/ballistics, C4 & Rocket raiding), Medical & Hazmat/Armor clothing modifiers, Radiation & Bleeding vitals, Hemp/Corn/Pumpkin crop genetics, and procedural Monuments (Airfield, Power Plant, Military Tunnels).
+
+---
+
+## 2026-11-05 - Phase 3: Ballistics, Raiding, Vitals/Radiation, Crop Genetics & Monuments
+
+**Branch:** `feature/p3-ballistics-vitals-and-monuments`
+
+### What changed & why
+1. **Military Firearms, Recoil/Ballistics & Raiding Explosives (`Source/Weapons/Public/Items/MilitaryFirearms.h`):**
+   - Added `FBallisticRecoilProfile` (deterministic S-curve horizontal/vertical recoil and gravity drop calculation) and `AAssaultRifleItem` (450 RPM, 30-rd `RifleBullet`), `ABoltActionRifleItem` (35 RPM, 4-rd `RifleBullet`, 1.6x muzzle velocity), and `ACustomSMGItem` (600 RPM, 24-rd `PistolBullet`).
+   - Added `FRaidExplosiveDamage` and `ATimedExplosiveChargeProjectile` (`C4` dealing `550` structural damage, `Rocket` dealing `275` structural damage, with `0.5x` reduction when `UServerRules::bOfflineRaidProtection` is active).
+2. **Vitals (Radiation & Bleeding), Medical Items & Clothing Protection (`Source/Vitals/`, `Source/Clothing/`):**
+   - Added `FClothingProtectionStats` (`ProjectileProtection`, `MeleeProtection`, `RadiationProtection`, `ColdInsulationCelsius`) with presets for `HazmatSuit` (`50%` rad resistance), `RoadSignJacket`/`RoadSignKilt`, and `MetalFacemask`/`MetalChestplate`.
+   - Extended `UVitalsComponent` with `CurrentRadiation`, `CurrentBleeding`, `AddRadiationExposure`, `AddBleeding`, `ApplyMedicalItem` (`Bandage`, `MedicalSyringe`, `AntiRadPills`), and `StepEnvironmentalVitals`.
+3. **6-Gene Crop Genetics (`Source/Deployables/Public/Deployables/CropGenetics.h`):**
+   - Implemented `FCropGeneSequence` (`G`, `Y`, `H`, `W`, `X` alleles with `0.6` vs `1.0` dominance crossbreeding) and `ACropSeedling` (`AHempCropSeedling`, `ACornCropSeedling`, `APumpkinCropSeedling`).
+4. **Procedural Monuments & Hackable Locked Crates (`Source/Structures/Public/Structures/MonumentStructure.h`):**
+   - Added `AMonumentStructure` (`AAirfieldMonument`, `APowerPlantMonument`, `AMilitaryTunnelsMonument`) with tiered radiation zones (`5 / 15 / 25 rads/s`), build-exclusion radii, tiered loot tables, and 15-minute (`900s`) `FHackableLockedCrateState`.
+5. **Blender 5.2 Low-Poly Assets (`Art/Blender/generate_phase3_assets.py`):**
+   - Generated `.blend` and `.fbx` meshes for `SM_BoltActionRifle`, `SM_CustomSMG`, `SM_TimedExplosiveCharge`, `SM_MedicalSyringe`, `SM_HazmatHelm`, `SM_HempPlant`, `SM_PumpkinPlant`, `SM_LockedCrate`, and `SM_MonumentRadSign`.
+
+### How it was verified
+- Compiled `WildOmissionEditor Win64 Development` on UE 5.8.4.
+- Executed headless UE 5.8 automation test suite (`WildOmission.Phase3` in `Source/WildOmissionCore/Tests/Phase3BallisticsVitalsMonumentsTests.cpp`):
+  - `WildOmission.Phase3.BallisticsAndRaiding`
+  - `WildOmission.Phase3.VitalsMedicalAndClothing`
+  - `WildOmission.Phase3.CropGeneticsAndMonuments`
+
+### Next
+- **Phase 4 (`feature/p4-weather-physics-and-ai`):** Acid rain, blizzards/sandstorms, body temperature vital & shelter/campfire warmth, tornado structural wind stripping on Twig/Wood, and Scientist/Patrol Helicopter AI Behavior Trees.

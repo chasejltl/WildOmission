@@ -18,7 +18,7 @@ float FRaidExplosiveDamage::CalculateEffectiveRaidDamage(float BaseExplosiveDama
 AAssaultRifleItem::AAssaultRifleItem()
 {
 	RateOfFireRPM = 450;
-	AmmoItem = TEXT("RifleBullet");
+	AmmoItemID = TEXT("RifleBullet");
 	CurrentBurstShotCount = 0;
 }
 
@@ -37,14 +37,14 @@ void AAssaultRifleItem::ResetBurstRecoil()
 ABoltActionRifleItem::ABoltActionRifleItem()
 {
 	RateOfFireRPM = 35;
-	AmmoItem = TEXT("RifleBullet");
+	AmmoItemID = TEXT("RifleBullet");
 	MuzzleVelocityMultiplier = 1.6f;
 }
 
 ACustomSMGItem::ACustomSMGItem()
 {
 	RateOfFireRPM = 600;
-	AmmoItem = TEXT("PistolBullet");
+	AmmoItemID = TEXT("PistolBullet");
 }
 
 ATimedExplosiveChargeProjectile::ATimedExplosiveChargeProjectile()

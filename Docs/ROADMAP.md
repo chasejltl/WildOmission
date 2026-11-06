@@ -140,7 +140,7 @@ Estimates are "focused work sessions" (~half a day) and are rough.
 - **Dedicated server revival** + offline-raid-protection option.
 - **Verification:** TC blocks enemy placement; upkeep drains correctly each cycle; power graph load/overload.
 
-### Phase 3: Advanced ballistics, loot, monuments (≈ 25–30 sessions)
+### Phase 3: Advanced ballistics, loot, monuments (✅ Completed)
 - **Firearms:** tune assault rifle, add bolt-action, SMG, C4; rocket launcher hooked to structure damage tiers. Recoil, bullet drop.
 - **Medical / clothing:** syringes, bandages, bleeding, armor sets, **hazmat**, insulation on `Clothing`.
 - **Vitals:** **radiation** (temperature in Phase 4).
