@@ -7,6 +7,8 @@
 #include "TimerManager.h"
 #include "Net/UnrealNetwork.h"
 
+static TArray<ABuildingBlock*> AllBuildingBlocks;
+
 ABuildingBlock::ABuildingBlock()
 {
 	MaterialType = EToolType::WOOD;
@@ -27,10 +29,22 @@ void ABuildingBlock::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(ABuildingBlock, StructuralStability);
 }
 
+void ABuildingBlock::OnSpawn()
+{
+	Super::OnSpawn();
+	AllBuildingBlocks.AddUnique(this);
+}
+
+const TArray<ABuildingBlock*>& ABuildingBlock::GetAllBuildingBlocks()
+{
+	return AllBuildingBlocks;
+}
+
 void ABuildingBlock::BeginPlay()
 {
 	Super::BeginPlay();
 
+	AllBuildingBlocks.AddUnique(this);
 	StructuralStability = FBuildingTierRules::CalculateStability(SupportHopsFromFoundation);
 
 	if (HasAuthority())
@@ -46,6 +60,12 @@ void ABuildingBlock::BeginPlay()
 			GetWorld()->GetTimerManager().SetTimer(TwigDecayTimerHandle, this, &ABuildingBlock::TickTwigDecay, 60.0f, true);
 		}
 	}
+}
+
+void ABuildingBlock::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	AllBuildingBlocks.Remove(this);
+	Super::EndPlay(EndPlayReason);
 }
 
 void ABuildingBlock::ApplyTierStats(EBuildingTier InTier)
