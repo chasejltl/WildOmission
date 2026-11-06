@@ -159,8 +159,8 @@ bool UCraftingComponent::IsBlueprintUnlocked(const FName& RecipeName) const
 		return true;
 	}
 
-	const UServerRules* Rules = UServerRules::Get();
-	if (Rules != nullptr && !Rules->bWorkbenchTaxEnabled)
+	const UServerRules* Rules = UServerRules::Get(this);
+	if (Rules != nullptr && !Rules->bWorkbenchTierGatingEnabled)
 	{
 		return true;
 	}

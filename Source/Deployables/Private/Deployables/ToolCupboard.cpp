@@ -172,13 +172,13 @@ TMap<FName, int32> AToolCupboard::CalculateDailyUpkeepCost() const
 {
 	TMap<FName, int32> DailyCosts;
 
-	const UServerRules* Rules = UServerRules::Get();
-	if (Rules != nullptr && (!Rules->bUpkeepEnabled || Rules->UpkeepRateMultiplier <= 0.0f))
+	const UServerRules* Rules = UServerRules::Get(this);
+	if (Rules != nullptr && (!Rules->bUpkeepEnabled || Rules->UpkeepCostMultiplier <= 0.0f))
 	{
 		return DailyCosts;
 	}
 
-	const float ServerMultiplier = (Rules != nullptr) ? Rules->UpkeepRateMultiplier : 1.0f;
+	const float ServerMultiplier = (Rules != nullptr) ? Rules->UpkeepCostMultiplier : 1.0f;
 	const TArray<ABuildingBlock*> ConnectedBlocks = GetConnectedBuildingBlocks();
 
 	int32 NonTwigCount = 0;
@@ -225,7 +225,7 @@ bool AToolCupboard::ProcessUpkeepCycle(float HoursElapsed)
 		return true;
 	}
 
-	const UServerRules* Rules = UServerRules::Get();
+	const UServerRules* Rules = UServerRules::Get(this);
 	const bool bUpkeepActive = (Rules == nullptr) || Rules->bUpkeepEnabled;
 	const bool bDecayActive = (Rules == nullptr) || Rules->bBuildingDecayEnabled;
 

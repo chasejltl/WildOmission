@@ -25,7 +25,7 @@ public:
 
 	/** Convenience static accessor that returns the active subsystem or the class default object. */
 	UFUNCTION(BlueprintPure, Category = "Server Rules", meta = (WorldContext = "WorldContextObject"))
-	static UServerRules* Get(const UObject* WorldContextObject);
+	static UServerRules* Get(const UObject* WorldContextObject = nullptr);
 
 	/** Read-only fallback to CDO when no WorldContextObject is available. */
 	static const UServerRules* GetDefault();
@@ -80,6 +80,9 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	bool bWorkbenchTierGatingEnabled;
+
+	UPROPERTY(Config, EditAnywhere, BlueprintReadWrite, Category = "Building")
+	bool bElectricityEnabled;
 
 	// --- Environment, Weather & AI (Phase 0, 3 & 4) ---
 
