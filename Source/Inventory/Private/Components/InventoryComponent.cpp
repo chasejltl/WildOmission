@@ -191,7 +191,7 @@ void UInventoryComponent::EnsureDefaultPhase1ItemsRegistered()
 	}
 	bPhase1ItemsSeeded = true;
 
-	auto AddItemDef = [](const FName& ID, const TCHAR* Display, EItemCategory Cat, int32 Stack, const TCHAR* Desc, TInitializerList<TPair<FName, int32>> DefaultStats = {})
+	auto AddItemDef = [](const FName& ID, const TCHAR* Display, EItemCategory Cat, int32 Stack, const TCHAR* Desc, const TArray<TPair<FName, int32>>& DefaultStats = TArray<TPair<FName, int32>>())
 	{
 		FItemData Data;
 		Data.DisplayName = Display;

@@ -89,6 +89,6 @@ protected:
 
 	FInventoryItem HandleYieldFromList(const TArray<FInventoryItem>& DropList, float GatherMultiplier, EToolTier ToolTier = EToolTier::Stone);
 
-	void PlayDestructionEffects();
+	virtual void PlayDestructionEffects();
 
 };

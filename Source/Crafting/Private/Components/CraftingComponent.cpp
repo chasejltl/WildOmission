@@ -36,7 +36,7 @@ void UCraftingComponent::EnsureDefaultPhase1RecipesRegistered()
 	}
 	bPhase1RecipesSeeded = true;
 
-	auto AddRecipe = [](const FName& Name, int32 YieldQty, int32 CraftSeconds, uint8 WorkbenchTier, TInitializerList<TPair<FName, int32>> Ings)
+	auto AddRecipe = [](const FName& Name, int32 YieldQty, int32 CraftSeconds, uint8 WorkbenchTier, const TArray<TPair<FName, int32>>& Ings)
 	{
 		FCraftingRecipe Recipe;
 		Recipe.YieldQuantity = YieldQty;
