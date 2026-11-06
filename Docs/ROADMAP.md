@@ -154,7 +154,7 @@ Estimates are "focused work sessions" (~half a day) and are rough.
 - **AI:** Scientists via Behavior Trees (cover, blind fire, grenades, flank, heal) on `WildOmissionAI`/`Monsters`; EQS cover queries, AI hearing; patrol helicopter and heavy squads at monuments.
 - **Verification:** AI line-of-sight, sound reaction, cover-seeking in test arenas.
 
-### Phase 5: Polish & release (≈ 10 sessions)
+### Phase 5: Polish & release (✅ Completed)
 Balance, performance (Unreal Insights), UI polish, Workshop compatibility, updated Steam guides/changelog, optional upstream PR proposal.
 
 ---
