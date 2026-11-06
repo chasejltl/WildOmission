@@ -3,6 +3,7 @@
 
 #include "Deployables/BuildingBlock.h"
 #include "Items/SwingableItem.h"
+#include "ServerRules.h"
 #include "Engine/DamageEvents.h"
 #include "TimerManager.h"
 #include "Net/UnrealNetwork.h"
@@ -104,6 +105,26 @@ void ABuildingBlock::TickTwigDecay()
 
 	FDamageEvent DecayDamageEvent;
 	TakeDamage(2.0f, DecayDamageEvent, nullptr, this);
+}
+
+void ABuildingBlock::ApplyWindDamage(AActor* WindCauser, float DamageMultiplier)
+{
+	const UServerRules* Rules = UServerRules::Get(this);
+	if (Rules != nullptr && !Rules->bStructuralWindDestructionEnabled)
+	{
+		return;
+	}
+
+	const float TierWindMult = FBuildingTierRules::GetWindDamageMultiplierForTier(BuildingTier);
+	if (TierWindMult <= 0.0f)
+	{
+		return;
+	}
+
+	const float DeltaSeconds = (GetWorld() != nullptr) ? GetWorld()->GetDeltaSeconds() : 1.0f;
+	const float EffectiveWindDamage = BaseWindDamage * DamageMultiplier * TierWindMult * DeltaSeconds;
+	FRadialDamageEvent WindDamageEvent;
+	TakeDamage(EffectiveWindDamage, WindDamageEvent, nullptr, WindCauser);
 }
 
 float ABuildingBlock::TakeDamage(float DamageAmount, const FDamageEvent& DamageEvent, AController* EventInstigator, AActor* DamageCauser)

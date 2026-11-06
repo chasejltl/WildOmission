@@ -295,6 +295,11 @@ void UInventoryComponent::EnsureDefaultPhase1ItemsRegistered()
 	AddItemDef(TEXT("PumpkinSeed"), TEXT("Pumpkin Seed"), EItemCategory::Food, 50, TEXT("Plantable Pumpkin seed carrying a 6-gene allele sequence; harvests into filling Pumpkins."));
 	AddItemDef(TEXT("Corn"), TEXT("Ear of Corn"), EItemCategory::Food, 20, TEXT("Freshly harvested corn restoring Hunger and Hydration."));
 	AddItemDef(TEXT("Pumpkin"), TEXT("Pumpkin"), EItemCategory::Food, 20, TEXT("Nutrient-dense pumpkin restoring substantial Hunger and Hydration."));
+
+	// Phase 4: Weather Adaptation Deployables & Tactical Grenades
+	AddItemDef(TEXT("RainCollector"), TEXT("Rain Catcher"), EItemCategory::Building, 1, TEXT("Outdoor funnel and cistern that passively collects fresh drinking water during rainstorms."));
+	AddItemDef(TEXT("WeatherRadar"), TEXT("Weather Radar Station"), EItemCategory::Building, 1, TEXT("Powered meteorological radar (requires 5W) that detects incoming Tornadoes, Acid Rain, and Blizzards."));
+	AddItemDef(TEXT("FragGrenade"), TEXT("F1 Fragmentation Grenade"), EItemCategory::Weapon, 5, TEXT("Timed fragmentation grenade used by Scientist squads and players to flush targets from cover."));
 }
 
 void UInventoryComponent::RegisterItemData(const FName& ItemID, const FItemData& Data)
