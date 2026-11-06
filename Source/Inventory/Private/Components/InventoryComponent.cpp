@@ -81,11 +81,20 @@ void UInventoryComponent::AddItem(const FInventoryItem& ItemToAdd, bool FromHarv
 
 	const bool UseServerState = OwningActor->HasAuthority();
 
+	if (UseServerState && ServerState.Slots.Num() < SlotCount)
+	{
+		ServerState.Slots.SetNum(SlotCount, EAllowShrinking::No);
+		for (int32 i = 0; i < SlotCount; ++i)
+		{
+			ServerState.Slots[i].Index = i;
+		}
+	}
+
 	// Create the Item Update
 	if (UseServerState)
 	{
 		FInventoryItemUpdate AdditionItemUpdate;
-		AdditionItemUpdate.Time = GetWorld()->GetRealTimeSeconds();
+		AdditionItemUpdate.Time = GetWorld() ? GetWorld()->GetRealTimeSeconds() : 0.0f;
 		AdditionItemUpdate.Addition = true;
 		AdditionItemUpdate.Item = ItemToAdd;
 		ServerState.Updates.Add(AdditionItemUpdate);
@@ -117,7 +126,7 @@ void UInventoryComponent::AddItem(const FInventoryItem& ItemToAdd, bool FromHarv
 		DroppedItem.Quantity = Remaining;
 
 		FInventoryItemUpdate DroppedItemUpdate;
-		DroppedItemUpdate.Time = GetWorld()->GetRealTimeSeconds();
+		DroppedItemUpdate.Time = GetWorld() ? GetWorld()->GetRealTimeSeconds() : 0.0f;
 		DroppedItemUpdate.Addition = false;
 		DroppedItemUpdate.Item = DroppedItem;
 		ServerState.Updates.Add(DroppedItemUpdate);
@@ -242,6 +251,26 @@ void UInventoryComponent::EnsureDefaultPhase1ItemsRegistered()
 	AddItemDef(TEXT("BoneArrow"), TEXT("Bone Arrow"), EItemCategory::Ammo, 64, TEXT("Heavy bone-tipped arrow with wider hit radius and higher impact damage."), { { TEXT("Damage"), 42 }, { TEXT("Velocity"), 3900 } });
 	AddItemDef(TEXT("PistolBullet"), TEXT("Pistol Cartridge"), EItemCategory::Ammo, 128, TEXT("Tier 1 pistol cartridge for revolvers and SMGs."), { { TEXT("Damage"), 38 }, { TEXT("Velocity"), 12000 } });
 	AddItemDef(TEXT("RifleBullet"), TEXT("5.56 Rifle Cartridge"), EItemCategory::Ammo, 128, TEXT("Tier 2 high-velocity rifle cartridge."), { { TEXT("Damage"), 55 }, { TEXT("Velocity"), 22000 } });
+
+	// Phase 2: Industrial Resources, Workbenches, Deployables, Electricity & Traps
+	AddItemDef(TEXT("Scrap"), TEXT("Scrap"), EItemCategory::Resource, 1000, TEXT("Salvaged industrial scrap used to build Workbenches and unlock Blueprints at a Research Table."));
+	AddItemDef(TEXT("CrudeOil"), TEXT("Crude Oil"), EItemCategory::Resource, 500, TEXT("Unrefined petroleum found in barrels; refine in an Oil Refinery into Low Grade Fuel."));
+	AddItemDef(TEXT("WorkbenchT1"), TEXT("Workbench Level 1"), EItemCategory::Building, 1, TEXT("Tier 1 Workbench enabling early metal tools, primitive firearms, and industrial deployables."));
+	AddItemDef(TEXT("WorkbenchT2"), TEXT("Workbench Level 2"), EItemCategory::Building, 1, TEXT("Tier 2 Workbench enabling military-grade ammunition, Large Furnaces, and electrical systems."));
+	AddItemDef(TEXT("WorkbenchT3"), TEXT("Workbench Level 3"), EItemCategory::Building, 1, TEXT("Tier 3 Workbench enabling end-game weapons, Automated Turrets, and raiding explosives."));
+	AddItemDef(TEXT("ResearchTable"), TEXT("Research Table"), EItemCategory::Building, 1, TEXT("Industrial drafting table for spending Scrap to permanently learn crafting Blueprints."));
+	AddItemDef(TEXT("KeyLock"), TEXT("Key Lock"), EItemCategory::Building, 1, TEXT("Primitive wooden/iron key lock for securing early-game doors, boxes, and Tool Cupboards."));
+	AddItemDef(TEXT("CodeLock"), TEXT("Code Lock"), EItemCategory::Building, 1, TEXT("Electronic 4-digit keypad lock for multi-player base authorization."));
+	AddItemDef(TEXT("LargeStorageBox"), TEXT("Large Wooden Box"), EItemCategory::Building, 1, TEXT("Reinforced 30-slot wooden storage crate."));
+	AddItemDef(TEXT("SmallFurnace"), TEXT("Small Furnace"), EItemCategory::Building, 1, TEXT("Compact clay and stone furnace for smelting Metal and Sulfur Ore."));
+	AddItemDef(TEXT("LargeFurnace"), TEXT("Large Furnace"), EItemCategory::Building, 1, TEXT("High-capacity industrial smelter with 2x smelting speed and 18 slots."));
+	AddItemDef(TEXT("OilRefinery"), TEXT("Small Oil Refinery"), EItemCategory::Building, 1, TEXT("Distillation refinery that converts Crude Oil into Low Grade Fuel."));
+	AddItemDef(TEXT("SolarPanel"), TEXT("Large Solar Panel"), EItemCategory::Building, 1, TEXT("Photovoltaic generator producing up to 20 electrical power units during daylight."));
+	AddItemDef(TEXT("SmallBattery"), TEXT("Small Rechargeable Battery"), EItemCategory::Building, 1, TEXT("Stores electrical charge and outputs up to 10 continuous power units."));
+	AddItemDef(TEXT("ElectricSwitch"), TEXT("Electrical Switch"), EItemCategory::Building, 1, TEXT("Inline power switch for toggling base circuits on and off."));
+	AddItemDef(TEXT("ElectricSplitter"), TEXT("Electrical Splitter"), EItemCategory::Building, 1, TEXT("Divides incoming electrical power equally across up to 3 connected outputs."));
+	AddItemDef(TEXT("AutoTurret"), TEXT("Auto Turret"), EItemCategory::Building, 1, TEXT("Powered automated sentry turret (requires 10 power) that engages unauthorized intruders."));
+	AddItemDef(TEXT("ShotgunTrap"), TEXT("Shotgun Trap"), EItemCategory::Building, 1, TEXT("Mechanical tripwire shotgun trap that fires at unauthorized players entering its cone."));
 }
 
 void UInventoryComponent::RegisterItemData(const FName& ItemID, const FItemData& Data)

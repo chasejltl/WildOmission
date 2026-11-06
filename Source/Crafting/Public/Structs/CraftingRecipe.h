@@ -27,4 +27,8 @@ struct CRAFTING_API FCraftingRecipe : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	uint8 RequiredWorkbenchTier = 0;
 
+	/** Scrap cost at a Research Table to permanently unlock this recipe's blueprint (0 = unlocked by default). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ResearchScrapCost = 0;
+
 };

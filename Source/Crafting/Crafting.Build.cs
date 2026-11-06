@@ -7,6 +7,6 @@ public class Crafting: ModuleRules
     public Crafting(ReadOnlyTargetRules Target) : base(Target)
     {
         PublicDependencyModuleNames.AddRange(new string[] { "Engine", "UMG", "Inventory" });
-        PrivateDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "CustomUI" });
+        PrivateDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "CustomUI", "GameSettings" });
     }
 }
