@@ -82,7 +82,37 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool IsGodMode() const;
 
+	UFUNCTION(BlueprintCallable)
 	void SetHurtSound(USoundBase* InHurtSound);
+
+	// --- Phase 3: Radiation, Bleeding & Medical Systems ---
+
+	UFUNCTION(BlueprintCallable, Category = "Vitals|Radiation")
+	void SetRadiationProtection(float InProtection01);
+
+	UFUNCTION(BlueprintPure, Category = "Vitals|Radiation")
+	float GetRadiationProtection() const { return EquippedRadiationProtection; }
+
+	/** Applies environmental radiation exposure (rads), mitigated by EquippedRadiationProtection. */
+	UFUNCTION(BlueprintCallable, Category = "Vitals|Radiation")
+	void AddRadiationExposure(float RawRads);
+
+	UFUNCTION(BlueprintPure, Category = "Vitals|Radiation")
+	float GetRadiation() const { return CurrentRadiation; }
+
+	UFUNCTION(BlueprintCallable, Category = "Vitals|Bleeding")
+	void AddBleeding(float BleedAmount);
+
+	UFUNCTION(BlueprintPure, Category = "Vitals|Bleeding")
+	float GetBleeding() const { return CurrentBleeding; }
+
+	/** Applies Bandage, MedicalSyringe, or AntiRadPills effects to vitals. */
+	UFUNCTION(BlueprintCallable, Category = "Vitals|Medical")
+	bool ApplyMedicalItem(const FName& MedicalItemID);
+
+	/** Advances Radiation & Bleeding health drain over DeltaSeconds. */
+	UFUNCTION(BlueprintCallable, Category = "Vitals")
+	void StepEnvironmentalVitals(float DeltaSeconds);
 
 	FOnBeginThirstSignature OnBeginThirst;
 	FOnEndThirstSignature OnEndThirst;
@@ -142,6 +172,14 @@ private:
 
 	UPROPERTY(Replicated)
 	float CurrentHunger;
+
+	UPROPERTY(Replicated)
+	float CurrentRadiation;
+
+	UPROPERTY(Replicated)
+	float CurrentBleeding;
+
+	float EquippedRadiationProtection;
 
 	bool HealthCanDeplete;
 	bool ThirstCanDeplete;

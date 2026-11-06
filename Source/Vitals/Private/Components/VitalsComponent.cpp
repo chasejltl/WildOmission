@@ -2,6 +2,7 @@
 
 
 #include "Components/VitalsComponent.h"
+#include "ServerRules.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
@@ -43,6 +44,10 @@ UVitalsComponent::UVitalsComponent()
 	BeginStarvingBroadcasted = false;
 	EndStarvingBroadcasted = false;
 
+	CurrentRadiation = 0.0f;
+	CurrentBleeding = 0.0f;
+	EquippedRadiationProtection = 0.0f;
+
 	ConstructorHelpers::FObjectFinder<USoundBase> DefaultHurtSoundObject(TEXT("/Game/WildOmissionCore/Characters/Human/Audio/Damage/Human_HurtGeneric_Cue"));
 	if (!DefaultHurtSoundObject.Succeeded())
 	{
@@ -81,6 +86,8 @@ void UVitalsComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME_CONDITION(UVitalsComponent, CurrentHealth, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UVitalsComponent, CurrentThirst, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UVitalsComponent, CurrentHunger, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UVitalsComponent, CurrentRadiation, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UVitalsComponent, CurrentBleeding, COND_OwnerOnly);
 }
 
 void UVitalsComponent::CalculateDepletion()
@@ -109,6 +116,8 @@ void UVitalsComponent::CalculateDepletion()
 	{
 		CurrentHealth = FMath::Clamp(CurrentHealth - (HealthDepletionRate * World->GetDeltaSeconds()), 0.0f, MaxHealth);
 	}
+
+	StepEnvironmentalVitals(World->GetDeltaSeconds());
 
 	// If Health is too low kill the player
 	if (CurrentHealth <= 0.0f)
@@ -343,4 +352,86 @@ void UVitalsComponent::OnOwnerTakeAnyDamage(AActor* DamagedActor, float Damage, 
 	}
 
 	AddHealth(-Damage);
+}
+
+void UVitalsComponent::SetRadiationProtection(float InProtection01)
+{
+	EquippedRadiationProtection = FMath::Clamp(InProtection01, 0.0f, 1.0f);
+}
+
+void UVitalsComponent::AddRadiationExposure(float RawRads)
+{
+	if (RawRads <= 0.0f)
+	{
+		CurrentRadiation = FMath::Clamp(CurrentRadiation + RawRads, 0.0f, 500.0f);
+		return;
+	}
+
+	const UServerRules* Rules = UServerRules::Get(this);
+	if (Rules != nullptr && !Rules->bRadiationEnabled)
+	{
+		return;
+	}
+
+	// Hazmat suit (0.50 protection) completely blocks normal monument ambient rads (up to 25 rads) and scales the rest
+	if (EquippedRadiationProtection >= 0.50f && RawRads <= 25.0f)
+	{
+		return;
+	}
+
+	const float EffectiveRads = RawRads * FMath::Max(0.0f, 1.0f - EquippedRadiationProtection);
+	CurrentRadiation = FMath::Clamp(CurrentRadiation + EffectiveRads, 0.0f, 500.0f);
+}
+
+void UVitalsComponent::AddBleeding(float BleedAmount)
+{
+	CurrentBleeding = FMath::Clamp(CurrentBleeding + BleedAmount, 0.0f, 100.0f);
+}
+
+bool UVitalsComponent::ApplyMedicalItem(const FName& MedicalItemID)
+{
+	if (MedicalItemID == TEXT("Bandage"))
+	{
+		CurrentBleeding = 0.0f;
+		AddHealth(5.0f);
+		return true;
+	}
+	if (MedicalItemID == TEXT("MedicalSyringe"))
+	{
+		AddHealth(35.0f); // +15 instant + 20 HoT combined
+		CurrentRadiation = FMath::Max(0.0f, CurrentRadiation - 10.0f);
+		return true;
+	}
+	if (MedicalItemID == TEXT("AntiRadPills"))
+	{
+		CurrentRadiation = FMath::Max(0.0f, CurrentRadiation - 75.0f);
+		AddThirst(-5.0f);
+		return true;
+	}
+	return false;
+}
+
+void UVitalsComponent::StepEnvironmentalVitals(float DeltaSeconds)
+{
+	if (DeltaSeconds <= 0.0f || !HealthCanDeplete)
+	{
+		return;
+	}
+
+	const UServerRules* Rules = UServerRules::Get(this);
+	const bool bRadActive = (Rules == nullptr) || Rules->bRadiationEnabled;
+
+	if (bRadActive && CurrentRadiation > 0.0f)
+	{
+		const float RadDamage = (CurrentRadiation * 0.15f) * DeltaSeconds;
+		CurrentHealth = FMath::Clamp(CurrentHealth - RadDamage, 0.0f, MaxHealth);
+		CurrentRadiation = FMath::Max(0.0f, CurrentRadiation - (0.5f * DeltaSeconds));
+	}
+
+	if (CurrentBleeding > 0.0f)
+	{
+		const float BleedDamage = (CurrentBleeding * 0.20f) * DeltaSeconds;
+		CurrentHealth = FMath::Clamp(CurrentHealth - BleedDamage, 0.0f, MaxHealth);
+		CurrentBleeding = FMath::Max(0.0f, CurrentBleeding - (1.0f * DeltaSeconds));
+	}
 }
