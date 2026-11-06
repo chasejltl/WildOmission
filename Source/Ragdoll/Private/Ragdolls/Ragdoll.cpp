@@ -38,6 +38,27 @@ ARagdoll::ARagdoll()
 	DespawnComponent->SetDespawnTime(600.0f);
 
 	HarvestableComponent = CreateDefaultSubobject<UHarvestableComponent>(TEXT("HarvestableComponent"));
+	if (HarvestableComponent != nullptr)
+	{
+		TArray<FInventoryItem> CorpseCommonDrops;
+		FInventoryItem AnimalFatDrop;
+		AnimalFatDrop.Name = TEXT("AnimalFat");
+		AnimalFatDrop.Quantity = 10;
+		CorpseCommonDrops.Add(AnimalFatDrop);
+
+		FInventoryItem BoneDrop;
+		BoneDrop.Name = TEXT("BoneFragments");
+		BoneDrop.Quantity = 15;
+		CorpseCommonDrops.Add(BoneDrop);
+
+		TArray<FInventoryItem> CorpseRareDrops;
+		FInventoryItem ClothDrop;
+		ClothDrop.Name = TEXT("Cloth");
+		ClothDrop.Quantity = 5;
+		CorpseRareDrops.Add(ClothDrop);
+
+		HarvestableComponent->ConfigureDefaultDrops(CorpseCommonDrops, CorpseRareDrops);
+	}
 }
 
 void ARagdoll::Tick(float DeltaTime)
