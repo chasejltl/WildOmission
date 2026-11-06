@@ -99,6 +99,24 @@ void UCraftingComponent::EnsureDefaultPhase1RecipesRegistered()
 	AddRecipe(TEXT("ElectricSplitter"), 1, 5, 1, { { TEXT("HighQualityMetal"), 1 }, { TEXT("MetalFragments"), 50 } }, 20);
 	AddRecipe(TEXT("ShotgunTrap"), 1, 20, 1, { { TEXT("Wood"), 300 }, { TEXT("MetalFragments"), 150 } }, 75);
 	AddRecipe(TEXT("AutoTurret"), 1, 30, 2, { { TEXT("HighQualityMetal"), 40 }, { TEXT("MetalFragments"), 500 } }, 500);
+
+	// Phase 3: Military Firearms & Raiding Explosives
+	AddRecipe(TEXT("CustomSMG"), 1, 25, 2, { { TEXT("HighQualityMetal"), 15 }, { TEXT("MetalFragments"), 200 } }, 250);
+	AddRecipe(TEXT("BoltActionRifle"), 1, 35, 3, { { TEXT("HighQualityMetal"), 30 }, { TEXT("MetalFragments"), 300 } }, 500);
+	AddRecipe(TEXT("AssaultRifle"), 1, 40, 3, { { TEXT("HighQualityMetal"), 50 }, { TEXT("Wood"), 200 }, { TEXT("MetalFragments"), 400 } }, 500);
+	AddRecipe(TEXT("Explosives"), 1, 5, 3, { { TEXT("Gunpowder"), 50 }, { TEXT("LowGradeFuel"), 3 }, { TEXT("Sulfur"), 10 }, { TEXT("MetalFragments"), 10 } }, 250);
+	AddRecipe(TEXT("TimedExplosiveCharge"), 1, 30, 3, { { TEXT("Explosives"), 20 }, { TEXT("Cloth"), 5 } }, 500);
+	AddRecipe(TEXT("Rocket"), 1, 15, 3, { { TEXT("Explosives"), 10 }, { TEXT("Gunpowder"), 150 }, { TEXT("MetalFragments"), 100 } }, 500);
+
+	// Phase 3: Medicals & Armor/Hazmat
+	AddRecipe(TEXT("Bandage"), 1, 3, 0, { { TEXT("Cloth"), 4 } });
+	AddRecipe(TEXT("MedicalSyringe"), 1, 8, 2, { { TEXT("Cloth"), 15 }, { TEXT("MetalFragments"), 10 }, { TEXT("LowGradeFuel"), 10 } }, 125);
+	AddRecipe(TEXT("AntiRadPills"), 2, 5, 1, { { TEXT("Cloth"), 10 }, { TEXT("Charcoal"), 20 } }, 75);
+	AddRecipe(TEXT("HazmatSuit"), 1, 20, 2, { { TEXT("Cloth"), 50 }, { TEXT("HighQualityMetal"), 8 }, { TEXT("LowGradeFuel"), 20 } }, 125);
+	AddRecipe(TEXT("RoadSignJacket"), 1, 15, 2, { { TEXT("Cloth"), 30 }, { TEXT("HighQualityMetal"), 4 }, { TEXT("MetalFragments"), 150 } }, 125);
+	AddRecipe(TEXT("RoadSignKilt"), 1, 15, 2, { { TEXT("Cloth"), 25 }, { TEXT("HighQualityMetal"), 3 }, { TEXT("MetalFragments"), 100 } }, 125);
+	AddRecipe(TEXT("MetalFacemask"), 1, 20, 3, { { TEXT("Cloth"), 15 }, { TEXT("HighQualityMetal"), 15 } }, 500);
+	AddRecipe(TEXT("MetalChestplate"), 1, 25, 3, { { TEXT("Cloth"), 25 }, { TEXT("HighQualityMetal"), 25 } }, 500);
 }
 
 void UCraftingComponent::RegisterRecipe(const FName& RecipeName, const FCraftingRecipe& RecipeData)

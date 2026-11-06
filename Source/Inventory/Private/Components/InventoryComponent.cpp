@@ -271,6 +271,30 @@ void UInventoryComponent::EnsureDefaultPhase1ItemsRegistered()
 	AddItemDef(TEXT("ElectricSplitter"), TEXT("Electrical Splitter"), EItemCategory::Building, 1, TEXT("Divides incoming electrical power equally across up to 3 connected outputs."));
 	AddItemDef(TEXT("AutoTurret"), TEXT("Auto Turret"), EItemCategory::Building, 1, TEXT("Powered automated sentry turret (requires 10 power) that engages unauthorized intruders."));
 	AddItemDef(TEXT("ShotgunTrap"), TEXT("Shotgun Trap"), EItemCategory::Building, 1, TEXT("Mechanical tripwire shotgun trap that fires at unauthorized players entering its cone."));
+
+	// Phase 3: Military Firearms, Raiding Explosives, Medicals, Armor/Hazmat & Crop Genetics
+	AddItemDef(TEXT("AssaultRifle"), TEXT("Assault Rifle"), EItemCategory::Weapon, 1, TEXT("Automatic 5.56 rifle with 30-round magazine and S-curve recoil profile."), { { TEXT("CurrentAmmo"), 0 }, { TEXT("MaxAmmo"), 30 }, { TEXT("Durability"), 300 } });
+	AddItemDef(TEXT("BoltActionRifle"), TEXT("Bolt-Action Rifle"), EItemCategory::Weapon, 1, TEXT("High-velocity long-range precision rifle chambered in 5.56 Rifle Cartridges."), { { TEXT("CurrentAmmo"), 0 }, { TEXT("MaxAmmo"), 4 }, { TEXT("Durability"), 300 } });
+	AddItemDef(TEXT("CustomSMG"), TEXT("Custom SMG"), EItemCategory::Weapon, 1, TEXT("High-rate-of-fire 24-round submachine gun chambered in Pistol Cartridges."), { { TEXT("CurrentAmmo"), 0 }, { TEXT("MaxAmmo"), 24 }, { TEXT("Durability"), 250 } });
+	AddItemDef(TEXT("Explosives"), TEXT("Explosives"), EItemCategory::Component, 100, TEXT("Refined military-grade explosive compound used in Timed Explosive Charges and Rockets."));
+	AddItemDef(TEXT("TimedExplosiveCharge"), TEXT("Timed Explosive Charge (C4)"), EItemCategory::Weapon, 10, TEXT("10-second timed demolition charge dealing 550 structural damage."));
+	AddItemDef(TEXT("Rocket"), TEXT("High-Velocity Raid Rocket"), EItemCategory::Ammo, 6, TEXT("Rocket warhead dealing 275 splash damage to fortified structures."));
+
+	AddItemDef(TEXT("Bandage"), TEXT("Cloth Bandage"), EItemCategory::Medical, 3, TEXT("Stops bleeding immediately and restores 5 Health."));
+	AddItemDef(TEXT("MedicalSyringe"), TEXT("Medical Syringe"), EItemCategory::Medical, 2, TEXT("Injects adrenaline and coagulants: +15 instant HP, +20 healing over time, and -10 Radiation."));
+	AddItemDef(TEXT("AntiRadPills"), TEXT("Anti-Radiation Pills"), EItemCategory::Medical, 10, TEXT("Potassium iodide tablets that purge 75 Radiation at the cost of 5 Thirst."));
+
+	AddItemDef(TEXT("HazmatSuit"), TEXT("Hazmat Suit"), EItemCategory::Clothing, 1, TEXT("Sealed NBC protective suit providing 50% Radiation resistance and moderate projectile protection."));
+	AddItemDef(TEXT("RoadSignJacket"), TEXT("Road Sign Jacket"), EItemCategory::Clothing, 1, TEXT("Tier 2 salvaged road-sign chest armor providing 35% projectile protection."));
+	AddItemDef(TEXT("RoadSignKilt"), TEXT("Road Sign Kilt"), EItemCategory::Clothing, 1, TEXT("Tier 2 armored leg guards crafted from salvaged street signs."));
+	AddItemDef(TEXT("MetalFacemask"), TEXT("Metal Facemask"), EItemCategory::Clothing, 1, TEXT("Tier 3 High-Quality Metal ballistic faceplate providing 50% head protection."));
+	AddItemDef(TEXT("MetalChestplate"), TEXT("Metal Chestplate"), EItemCategory::Clothing, 1, TEXT("Tier 3 High-Quality Metal torso armor providing 50% projectile protection."));
+
+	AddItemDef(TEXT("HempSeed"), TEXT("Hemp Seed"), EItemCategory::Food, 50, TEXT("Plantable Hemp seed carrying a 6-gene allele sequence; harvests into Cloth."));
+	AddItemDef(TEXT("CornSeed"), TEXT("Corn Seed"), EItemCategory::Food, 50, TEXT("Plantable Corn seed carrying a 6-gene allele sequence; harvests into edible Corn."));
+	AddItemDef(TEXT("PumpkinSeed"), TEXT("Pumpkin Seed"), EItemCategory::Food, 50, TEXT("Plantable Pumpkin seed carrying a 6-gene allele sequence; harvests into filling Pumpkins."));
+	AddItemDef(TEXT("Corn"), TEXT("Ear of Corn"), EItemCategory::Food, 20, TEXT("Freshly harvested corn restoring Hunger and Hydration."));
+	AddItemDef(TEXT("Pumpkin"), TEXT("Pumpkin"), EItemCategory::Food, 20, TEXT("Nutrient-dense pumpkin restoring substantial Hunger and Hydration."));
 }
 
 void UInventoryComponent::RegisterItemData(const FName& ItemID, const FItemData& Data)
