@@ -23,4 +23,8 @@ struct CRAFTING_API FCraftingRecipe : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 CraftTime = 0;
 
+	/** Required workbench tier to craft this recipe (0 = hand-craftable, 1..3 = Workbench Tier 1..3). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	uint8 RequiredWorkbenchTier = 0;
+
 };

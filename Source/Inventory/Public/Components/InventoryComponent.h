@@ -39,6 +39,8 @@ public:
 	static void SpawnWorldItem(UWorld* WorldContextObject, const struct FInventoryItem& ItemToSpawn, AActor* SpawningActor);
 
 	static TArray<FName> GetAllItems();
+	static void RegisterItemData(const FName& ItemID, const FItemData& Data);
+	static void EnsureDefaultPhase1ItemsRegistered();
 
 	FInventoryUpdateSignature OnUpdate;
 	FOnInventoryItemUpdateSignature OnItemUpdate;

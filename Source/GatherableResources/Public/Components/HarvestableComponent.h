@@ -19,8 +19,13 @@ public:
 	UHarvestableComponent();
 	
 	virtual void OnHarvest(AActor* HarvestingActor, float GatherMultiplier, bool IsQualityTool);
+	virtual void OnHarvestWithTier(AActor* HarvestingActor, float GatherMultiplier, bool IsQualityTool, EToolTier ToolTier);
 
 	TEnumAsByte<EToolType> GetRequiredToolType() const;
+	EToolTier GetMinimumToolTier() const;
+	void SetMinimumToolTier(EToolTier InTier);
+
+	void ConfigureDefaultDrops(const TArray<FInventoryItem>& InCommonDrops, const TArray<FInventoryItem>& InRareDrops = TArray<FInventoryItem>(), const TArray<FInventoryItem>& InQualityDrops = TArray<FInventoryItem>());
 	
 	int32 GetDurability() const;
 
@@ -44,10 +49,13 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	TEnumAsByte<EToolType> RequiredToolType;
+
+	UPROPERTY(EditDefaultsOnly)
+	EToolTier MinimumToolTier;
 	
 	UPROPERTY(EditDefaultsOnly, SaveGame)
 	int32 Durability;
 
-	FInventoryItem HandleYieldFromList(const TArray<FInventoryItem>& DropList, float GatherMultiplier);
+	FInventoryItem HandleYieldFromList(const TArray<FInventoryItem>& DropList, float GatherMultiplier, EToolTier ToolTier = EToolTier::Stone);
 
 };

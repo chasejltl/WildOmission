@@ -282,7 +282,7 @@ bool ABuildingHammerItem::GetUpgradeCostForDeployable(ADeployable* Deployable, T
 	FCraftingRecipe* UpgradeRecipe = UCraftingComponent::GetRecipe(UpgradeID);
 	if (UpgradeRecipe == nullptr)
 	{
-		return false;
+		return BuildingBlock->GetNextUpgradeCost(OutCost);
 	}
 
 	for (const FInventoryItem& Ingredient : UpgradeRecipe->Ingredients)

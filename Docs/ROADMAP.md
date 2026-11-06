@@ -113,7 +113,7 @@ Source: UE C++ project with ~40 modules, 644 source files. Already present:
 
 Estimates are "focused work sessions" (~half a day) and are rough.
 
-### Phase 0: Foundation (≈ 6–8 sessions)
+### Phase 0: Foundation (✅ Completed)
 1. Finish VS Build Tools install; verify `UnrealBuildTool` compiles.
 2. `feature/p0-ue58-upgrade`: bump `EngineAssociation`, fix deprecated APIs module by module (one commit per module), regenerate project files, get a clean editor launch. _Risk: Steam subsystem, Volumetrics plugin, Workshop code._ Fallback: install UE 5.3.
 3. Decide LFS: migrate `*.uasset`, `*.umap`, `*.fbx`, `*.wav` to git-lfs (needs your OK).
@@ -124,7 +124,7 @@ Estimates are "focused work sessions" (~half a day) and are rough.
 
 **Exit:** project opens/packages on 5.8, build script, first art asset in-engine.
 
-### Phase 1: Core economy, primitives, basic combat (≈ 15–20 sessions)
+### Phase 1: Core economy, primitives, basic combat (✅ Completed)
 - **Data-driven items:** item definitions in a table (`Tools/items.csv` → DataAssets).
 - **Resources:** Metal Ore, HQM, sulfur nodes (rocky biomes); charcoal (burn wood in furnace), animal fat (animals). Blender: ore nodes, icons.
 - **Tool tiers:** Stone → Metal hatchet/pickaxe. Extend `EToolType`/`HarvestableComponent` with tier multiplier and minimum-tier gates.

@@ -12,7 +12,9 @@
 AToolItem::AToolItem()
 {
 	ToolType = EToolType::WOOD;
+	GatherMultiplier = 0.2f;
 	QualityTool = false;
+	ToolTier = EToolTier::Stone;
 }
 
 void AToolItem::OnPrimaryHeld()
@@ -32,6 +34,15 @@ bool AToolItem::IsQualityTool() const
 	return QualityTool;
 }
 
+EToolTier AToolItem::GetToolTier() const
+{
+	if (QualityTool && ToolTier < EToolTier::Metal)
+	{
+		return EToolTier::Metal;
+	}
+	return ToolTier;
+}
+
 void AToolItem::OnSwingImpact(const FHitResult& HitResult, const FVector& OwnerCharacterLookVector, bool FromFirstPersonInstance)
 {
 	Super::OnSwingImpact(HitResult, OwnerCharacterLookVector, FromFirstPersonInstance);
@@ -47,14 +58,16 @@ void AToolItem::OnSwingImpact(const FHitResult& HitResult, const FVector& OwnerC
 		return;
 	}
 
+	const EToolTier EffectiveTier = GetToolTier();
+
 	AHarvestableResource* HitHarvestable = Cast<AHarvestableResource>(HitActor);
 	UHarvestableComponent* HitHarvestableComponent = HitActor->FindComponentByClass<UHarvestableComponent>();
 	if (HitHarvestable != nullptr && (HitHarvestable->GetRequiredToolType() == ToolType || ToolType == EToolType::MULTI))
 	{
-		HitHarvestable->OnHarvest(GetOwner(), GatherMultiplier, QualityTool);
+		HitHarvestable->OnHarvestWithTier(GetOwner(), GatherMultiplier, QualityTool, EffectiveTier);
 	}
 	else if (HitHarvestableComponent != nullptr && (HitHarvestableComponent->GetRequiredToolType() == ToolType || ToolType == EToolType::MULTI))
 	{
-		HitHarvestableComponent->OnHarvest(GetOwner(), GatherMultiplier, QualityTool);
+		HitHarvestableComponent->OnHarvestWithTier(GetOwner(), GatherMultiplier, QualityTool, EffectiveTier);
 	}
 }

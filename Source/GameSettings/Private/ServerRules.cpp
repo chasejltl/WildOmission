@@ -36,7 +36,7 @@ UServerRules* UServerRules::Get(const UObject* WorldContextObject)
 
 const UServerRules* UServerRules::GetDefault()
 {
-	return GetDefault<UServerRules>();
+	return ::GetDefault<UServerRules>();
 }
 
 void UServerRules::ResetToDefaults()

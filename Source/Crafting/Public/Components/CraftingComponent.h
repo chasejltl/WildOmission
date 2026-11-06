@@ -27,4 +27,12 @@ public:
 
 	static FCraftingRecipe* GetRecipe(const FName& RecipeName);
 
+	static void RegisterRecipe(const FName& RecipeName, const FCraftingRecipe& RecipeData);
+	static void EnsureDefaultPhase1RecipesRegistered();
+
+	void SetHighestAvailableWorkbenchTier(uint8 InTier);
+	uint8 GetHighestAvailableWorkbenchTier() const;
+
+private:
+	uint8 HighestAvailableWorkbenchTier;
 };

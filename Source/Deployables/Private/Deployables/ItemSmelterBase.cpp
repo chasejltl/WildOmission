@@ -31,6 +31,39 @@ AItemSmelterBase::AItemSmelterBase()
 
 	AudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
 	AudioComponent->SetupAttachment(MeshComponent);
+
+	EnsureDefaultSmeltingRules();
+}
+
+void AItemSmelterBase::EnsureDefaultSmeltingRules()
+{
+	if (FuelSource.Fuel.Name.IsNone())
+	{
+		FuelSource.Fuel.Name = TEXT("Wood");
+		FuelSource.Fuel.Quantity = 1;
+	}
+	if (FuelSource.Byproduct.Name.IsNone())
+	{
+		FuelSource.Byproduct.Name = TEXT("Charcoal");
+		FuelSource.Byproduct.Quantity = 1;
+	}
+
+	if (Smeltables.IsEmpty())
+	{
+		auto AddSmeltPair = [this](const FName& RawName, int32 RawQty, const FName& OutName, int32 OutQty)
+		{
+			FSmeltResult Entry;
+			Entry.RawItem.Name = RawName;
+			Entry.RawItem.Quantity = RawQty;
+			Entry.SmeltedItem.Name = OutName;
+			Entry.SmeltedItem.Quantity = OutQty;
+			Smeltables.Add(Entry);
+		};
+
+		AddSmeltPair(TEXT("MetalOre"), 1, TEXT("MetalFragments"), 1);
+		AddSmeltPair(TEXT("SulfurOre"), 1, TEXT("Sulfur"), 1);
+		AddSmeltPair(TEXT("HighQualityMetalOre"), 1, TEXT("HighQualityMetal"), 1);
+	}
 }
 
 void AItemSmelterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

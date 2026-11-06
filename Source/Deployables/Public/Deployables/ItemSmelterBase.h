@@ -50,6 +50,8 @@ public:
 	
 	bool IsTurnedOn() const;
 
+	void EnsureDefaultSmeltingRules();
+
 	FOnItemSmeltedSignature OnItemSmelted;
 
 protected:

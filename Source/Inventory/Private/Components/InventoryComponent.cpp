@@ -12,6 +12,8 @@
 #include "Log.h"
 
 static UDataTable* ItemDataTable = nullptr;
+static TMap<FName, FItemData> RegisteredItemData;
+static bool bPhase1ItemsSeeded = false;
 
 UInventoryComponent::UInventoryComponent()
 {
@@ -181,16 +183,86 @@ void UInventoryComponent::SlotInteraction(const int32& SlotIndex, UInventoryMani
 	BroadcastInventoryUpdate();
 }
 
+void UInventoryComponent::EnsureDefaultPhase1ItemsRegistered()
+{
+	if (bPhase1ItemsSeeded)
+	{
+		return;
+	}
+	bPhase1ItemsSeeded = true;
+
+	auto AddItemDef = [](const FName& ID, const TCHAR* Display, EItemCategory Cat, int32 Stack, const TCHAR* Desc, const TArray<TPair<FName, int32>>& DefaultStats = TArray<TPair<FName, int32>>())
+	{
+		FItemData Data;
+		Data.DisplayName = Display;
+		Data.Category = Cat;
+		Data.StackSize = Stack;
+		Data.Description = Desc;
+		for (const TPair<FName, int32>& Pair : DefaultStats)
+		{
+			FItemStat Stat;
+			Stat.Name = Pair.Key;
+			Stat.Value = Pair.Value;
+			Data.Stats.Add(Stat);
+		}
+		RegisteredItemData.Add(ID, Data);
+	};
+
+	// Raw & refined resources
+	AddItemDef(TEXT("Wood"), TEXT("Wood"), EItemCategory::Resource, 1000, TEXT("Raw timber gathered from trees and log piles."));
+	AddItemDef(TEXT("Stone"), TEXT("Stone"), EItemCategory::Resource, 1000, TEXT("Raw stone gathered from rock nodes."));
+	AddItemDef(TEXT("MetalOre"), TEXT("Metal Ore"), EItemCategory::Resource, 1000, TEXT("Unrefined iron-rich ore; smelt in a furnace for Metal Fragments."));
+	AddItemDef(TEXT("MetalFragments"), TEXT("Metal Fragments"), EItemCategory::Resource, 1000, TEXT("Smelted metal fragments used for crafting and Sheet Metal upgrades."));
+	AddItemDef(TEXT("HighQualityMetalOre"), TEXT("High-Quality Metal Ore"), EItemCategory::Resource, 100, TEXT("Rare high-grade ore; smelt in a furnace for High-Quality Metal."));
+	AddItemDef(TEXT("HighQualityMetal"), TEXT("High-Quality Metal"), EItemCategory::Resource, 100, TEXT("Refined high-grade alloy used for Armored structures and advanced weapons."));
+	AddItemDef(TEXT("SulfurOre"), TEXT("Sulfur Ore"), EItemCategory::Resource, 1000, TEXT("Crystalline yellow ore; smelt in a furnace for Sulfur."));
+	AddItemDef(TEXT("Sulfur"), TEXT("Sulfur"), EItemCategory::Resource, 1000, TEXT("Refined sulfur; combine with Charcoal to craft Gunpowder."));
+	AddItemDef(TEXT("Charcoal"), TEXT("Charcoal"), EItemCategory::Resource, 1000, TEXT("Byproduct of burning wood in campfires and furnaces."));
+	AddItemDef(TEXT("AnimalFat"), TEXT("Animal Fat"), EItemCategory::Resource, 500, TEXT("Rendered fat harvested from animals; combine with Cloth for Low Grade Fuel."));
+	AddItemDef(TEXT("BoneFragments"), TEXT("Bone Fragments"), EItemCategory::Resource, 1000, TEXT("Harvested from animal carcasses; used for Bone Arrows and primitive tools."));
+	AddItemDef(TEXT("Cloth"), TEXT("Cloth"), EItemCategory::Resource, 1000, TEXT("Woven plant or animal fiber used in bows, clothing, and fuel."));
+	AddItemDef(TEXT("LowGradeFuel"), TEXT("Low Grade Fuel"), EItemCategory::Resource, 500, TEXT("Combustible fuel crafted from Animal Fat and Cloth."));
+	AddItemDef(TEXT("Gunpowder"), TEXT("Gunpowder"), EItemCategory::Resource, 1000, TEXT("Propellant crafted from Sulfur and Charcoal."));
+
+	// Tiered Tools
+	AddItemDef(TEXT("StoneHatchet"), TEXT("Stone Hatchet"), EItemCategory::Tool, 1, TEXT("Tier 1 stone hatchet for chopping wood."), { { TEXT("Durability"), 100 } });
+	AddItemDef(TEXT("StonePickaxe"), TEXT("Stone Pickaxe"), EItemCategory::Tool, 1, TEXT("Tier 1 stone pickaxe for mining stone, metal, and sulfur nodes."), { { TEXT("Durability"), 100 } });
+	AddItemDef(TEXT("MetalHatchet"), TEXT("Metal Hatchet"), EItemCategory::Tool, 1, TEXT("Tier 2 metal hatchet with 1.5x wood harvesting yield."), { { TEXT("Durability"), 200 } });
+	AddItemDef(TEXT("MetalPickaxe"), TEXT("Metal Pickaxe"), EItemCategory::Tool, 1, TEXT("Tier 2 metal pickaxe with 1.5x ore yield and HQM extraction capability."), { { TEXT("Durability"), 200 } });
+
+	// Primitive Weapons
+	AddItemDef(TEXT("WoodenSpear"), TEXT("Wooden Spear"), EItemCategory::Weapon, 1, TEXT("Sharpened long-reach wooden spear."), { { TEXT("Durability"), 60 } });
+	AddItemDef(TEXT("StoneSpear"), TEXT("Stone Spear"), EItemCategory::Weapon, 1, TEXT("Stone-tipped spear with increased melee damage and reach."), { { TEXT("Durability"), 90 } });
+	AddItemDef(TEXT("HuntingBow"), TEXT("Hunting Bow"), EItemCategory::Weapon, 1, TEXT("Primitive hunting bow firing Wooden or Bone Arrows."), { { TEXT("CurrentAmmo"), 0 }, { TEXT("MaxAmmo"), 1 }, { TEXT("Durability"), 100 } });
+	AddItemDef(TEXT("Crossbow"), TEXT("Crossbow"), EItemCategory::Weapon, 1, TEXT("High-velocity primitive crossbow."), { { TEXT("CurrentAmmo"), 0 }, { TEXT("MaxAmmo"), 1 }, { TEXT("Durability"), 150 } });
+	AddItemDef(TEXT("HandmadeRevolver"), TEXT("Handmade Revolver"), EItemCategory::Weapon, 1, TEXT("Six-shot primitive revolver chambered in Pistol Cartridges."), { { TEXT("CurrentAmmo"), 0 }, { TEXT("MaxAmmo"), 6 }, { TEXT("Durability"), 150 } });
+
+	// Ammo Types
+	AddItemDef(TEXT("WoodenArrow"), TEXT("Wooden Arrow"), EItemCategory::Ammo, 64, TEXT("Standard wooden arrow for bows and crossbows."), { { TEXT("Damage"), 35 }, { TEXT("Velocity"), 4500 } });
+	AddItemDef(TEXT("BoneArrow"), TEXT("Bone Arrow"), EItemCategory::Ammo, 64, TEXT("Heavy bone-tipped arrow with wider hit radius and higher impact damage."), { { TEXT("Damage"), 42 }, { TEXT("Velocity"), 3900 } });
+	AddItemDef(TEXT("PistolBullet"), TEXT("Pistol Cartridge"), EItemCategory::Ammo, 128, TEXT("Tier 1 pistol cartridge for revolvers and SMGs."), { { TEXT("Damage"), 38 }, { TEXT("Velocity"), 12000 } });
+	AddItemDef(TEXT("RifleBullet"), TEXT("5.56 Rifle Cartridge"), EItemCategory::Ammo, 128, TEXT("Tier 2 high-velocity rifle cartridge."), { { TEXT("Damage"), 55 }, { TEXT("Velocity"), 22000 } });
+}
+
+void UInventoryComponent::RegisterItemData(const FName& ItemID, const FItemData& Data)
+{
+	EnsureDefaultPhase1ItemsRegistered();
+	RegisteredItemData.Add(ItemID, Data);
+}
+
 FItemData* UInventoryComponent::GetItemData(const FName& ItemID)
 {
-	if (ItemDataTable == nullptr)
+	EnsureDefaultPhase1ItemsRegistered();
+	if (ItemDataTable != nullptr)
 	{
-		return nullptr;
+		static const FString ContextString(TEXT("Item Data Context"));
+		if (FItemData* Row = ItemDataTable->FindRow<FItemData>(ItemID, ContextString, false))
+		{
+			return Row;
+		}
 	}
 
-	static const FString ContextString(TEXT("Item Data Context"));
-
-	return ItemDataTable->FindRow<FItemData>(ItemID, ContextString, true);
+	return RegisteredItemData.Find(ItemID);
 }
 
 void UInventoryComponent::SpawnWorldItem(UWorld* WorldContextObject, const FInventoryItem& ItemToSpawn, AActor* SpawningActor)
@@ -227,14 +299,17 @@ void UInventoryComponent::SpawnWorldItem(UWorld* WorldContextObject, const FInve
 
 TArray<FName> UInventoryComponent::GetAllItems()
 {
-	if (ItemDataTable == nullptr)
+	EnsureDefaultPhase1ItemsRegistered();
+	TArray<FName> Names;
+	if (ItemDataTable != nullptr)
 	{
-		UE_LOG(LogInventory, Display, TEXT("Cannot get all item data, the item data table is missing."));
-		TArray<FName> OutEmptyList;
-		return OutEmptyList;
+		Names = ItemDataTable->GetRowNames();
 	}
-
-	return ItemDataTable->GetRowNames();
+	for (const TPair<FName, FItemData>& Pair : RegisteredItemData)
+	{
+		Names.AddUnique(Pair.Key);
+	}
+	return Names;
 }
 
 void UInventoryComponent::OnLoadComplete_Implementation()

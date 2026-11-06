@@ -22,8 +22,10 @@ public:
 	virtual bool IsNetRelevantFor(const AActor* RealViewer, const AActor* ViewTarget, const FVector& SrcLocation) const;
 
 	virtual void OnHarvest(AActor* HarvestingActor, float GatherMultiplier, bool IsQualityTool);
+	virtual void OnHarvestWithTier(AActor* HarvestingActor, float GatherMultiplier, bool IsQualityTool, EToolTier ToolTier);
 	
 	TEnumAsByte<EToolType> GetRequiredToolType() const;
+	EToolTier GetMinimumToolTier() const;
 	
 	int32 GetDurability() const;
 	
@@ -54,15 +56,15 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly)
 	TEnumAsByte<EToolType> RequiredToolType;
+
+	UPROPERTY(EditDefaultsOnly)
+	EToolTier MinimumToolTier;
 	
 	UPROPERTY(EditDefaultsOnly)
 	int32 Durability;
 
-	UPROPERTY(EditDefaultsOnly, SaveGame, Replicated, ReplicatedUsing = OnRep_NormalizedDurability);
+	UPROPERTY(EditDefaultsOnly, SaveGame, Replicated, ReplicatedUsing = OnRep_NormalizedDurability)
 	float NormalizedDurability;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Save System")
-	FName Identifier;
 
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* MeshComponent;
@@ -71,20 +73,22 @@ protected:
 	class UNavModifierComponent* NavigationModifier;
 
 	UPROPERTY(EditDefaultsOnly)
+	FName Identifier;
+
+	UPROPERTY(EditDefaultsOnly)
 	class UNiagaraSystem* DestructionParticleSystem;
 
 	UPROPERTY(EditDefaultsOnly)
 	USoundBase* DestructionSound;
 
-	FInventoryItem HandleYieldFromList(const TArray<FInventoryItem>& DropList, float GatherMultiplier);
+	UFUNCTION()
+	virtual void OnRep_NormalizedDurability();
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multi_PlayDestructionEffects();
 
-	UFUNCTION()
-	virtual void PlayDestructionEffects();
+	FInventoryItem HandleYieldFromList(const TArray<FInventoryItem>& DropList, float GatherMultiplier, EToolTier ToolTier = EToolTier::Stone);
 
-	UFUNCTION()
-	virtual void OnRep_NormalizedDurability();
+	virtual void PlayDestructionEffects();
 
 };

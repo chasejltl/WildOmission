@@ -17,10 +17,11 @@ public:
 
 	virtual void OnPrimaryHeld() override;
 
-	
 	float GetGatherMultiplier() const;
 	
 	bool IsQualityTool() const;
+
+	EToolTier GetToolTier() const;
 
 protected:
 	/*
@@ -46,6 +47,12 @@ protected:
 	*/
 	UPROPERTY(EditDefaultsOnly, Category = "Item")
 	bool QualityTool;
+
+	/*
+	Explicit Rust-style tool tier (Hand, Stone, Metal, Salvaged) used for yield scaling and minimum tier checks.
+	*/
+	UPROPERTY(EditDefaultsOnly, Category = "Item")
+	EToolTier ToolTier;
 
 	virtual void OnSwingImpact(const FHitResult& HitResult, const FVector& OwnerCharacterLookVector, bool FromFirstPersonInstance) override;
 

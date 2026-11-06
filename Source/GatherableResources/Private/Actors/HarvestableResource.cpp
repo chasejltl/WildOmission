@@ -38,6 +38,7 @@ AHarvestableResource::AHarvestableResource()
 	NormalizedQualityToolDropChance = 0.25f;
 
 	RequiredToolType = EToolType::WOOD;
+	MinimumToolTier = EToolTier::Hand;
 
 	Durability = 10;
 	NormalizedDurability = 1.0f;
@@ -68,9 +69,20 @@ bool AHarvestableResource::IsNetRelevantFor(const AActor* RealViewer, const AAct
 
 void AHarvestableResource::OnHarvest(AActor* HarvestingActor, float GatherMultiplier, bool IsQualityTool)
 {
+	const EToolTier DerivedTier = IsQualityTool ? EToolTier::Metal : EToolTier::Stone;
+	OnHarvestWithTier(HarvestingActor, GatherMultiplier, IsQualityTool, DerivedTier);
+}
+
+void AHarvestableResource::OnHarvestWithTier(AActor* HarvestingActor, float GatherMultiplier, bool IsQualityTool, EToolTier ToolTier)
+{
 	if (HarvestingActor == nullptr)
 	{
 		UE_LOG(LogGatherableResources, Warning, TEXT("Could not harvest resource, HarvestingActor was nullptr."));
+		return;
+	}
+
+	if (!FHarvestTierMath::CanTierHarvest(ToolTier, MinimumToolTier))
+	{
 		return;
 	}
 
@@ -82,18 +94,25 @@ void AHarvestableResource::OnHarvest(AActor* HarvestingActor, float GatherMultip
 	}
 
 	// Calculate Normal Drops
-	const bool GiveQualityToolDrop = !QualityToolDrops.IsEmpty() && IsQualityTool && UKismetMathLibrary::RandomBoolWithWeight(NormalizedQualityToolDropChance);
+	const bool bQualifiesForQualityDrop = IsQualityTool || static_cast<uint8>(ToolTier) >= static_cast<uint8>(EToolTier::Metal);
+	const bool GiveQualityToolDrop = !QualityToolDrops.IsEmpty() && bQualifiesForQualityDrop && UKismetMathLibrary::RandomBoolWithWeight(NormalizedQualityToolDropChance);
 	TArray<FInventoryItem>& DropList = GiveQualityToolDrop ? QualityToolDrops : CommonDrops;
 	
-	FInventoryItem Drop = HandleYieldFromList(DropList, GatherMultiplier);
-	HarvestingInventoryComponent->AddItem(Drop, true);
+	FInventoryItem Drop = HandleYieldFromList(DropList, GatherMultiplier, ToolTier);
+	if (!Drop.IsZero())
+	{
+		HarvestingInventoryComponent->AddItem(Drop, true);
+	}
 
 	// Calculate Rare Drops
 	const bool GiveRareDrop = !RareDrops.IsEmpty() && UKismetMathLibrary::RandomBoolWithWeight(NormalizedRareDropChance);
 	if (GiveRareDrop)
 	{
-		FInventoryItem RareDrop = HandleYieldFromList(RareDrops, GatherMultiplier);
-		HarvestingInventoryComponent->AddItem(RareDrop, true);
+		FInventoryItem RareDrop = HandleYieldFromList(RareDrops, GatherMultiplier, ToolTier);
+		if (!RareDrop.IsZero())
+		{
+			HarvestingInventoryComponent->AddItem(RareDrop, true);
+		}
 	}
 
 	NormalizedDurability -= (1.0f / static_cast<float>(Durability));
@@ -107,18 +126,14 @@ void AHarvestableResource::OnHarvest(AActor* HarvestingActor, float GatherMultip
 	OnRep_NormalizedDurability();
 }
 
-FInventoryItem AHarvestableResource::HandleYieldFromList(const TArray<FInventoryItem>& DropList, float GatherMultiplier)
+FInventoryItem AHarvestableResource::HandleYieldFromList(const TArray<FInventoryItem>& DropList, float GatherMultiplier, EToolTier ToolTier)
 {
 	FInventoryItem Item;
 	const int32 DropIndex = FMath::RandRange(0, DropList.Num() - 1);
 	if (!DropList.IsEmpty() && DropList.IsValidIndex(DropIndex))
 	{
 		Item = DropList[DropIndex];
-		Item.Quantity = Item.Quantity * GatherMultiplier;
-		if (Item.Quantity < 1)
-		{
-			Item.Quantity = 1;
-		}
+		Item.Quantity = FHarvestTierMath::CalculateScaledYield(Item.Quantity, GatherMultiplier, ToolTier, MinimumToolTier);
 	}
 
 	return Item;
@@ -161,6 +176,11 @@ void AHarvestableResource::OnRep_NormalizedDurability()
 TEnumAsByte<EToolType> AHarvestableResource::GetRequiredToolType() const
 {
 	return RequiredToolType;
+}
+
+EToolTier AHarvestableResource::GetMinimumToolTier() const
+{
+	return MinimumToolTier;
 }
 
 int32 AHarvestableResource::GetDurability() const
