@@ -58,3 +58,41 @@ Format: **what** changed, **why**, **how it was verified**, **what is next**. De
 
 ### Next
 - Smoke-test editor/game runtime on `feature/p0-ue58-upgrade`, implement `UServerRules` (admin-configurable server toggles), and merge `feature/p0-ue58-upgrade` to `main` once verified stable.
+
+---
+
+## 2026-11-05 - Phase 0 Completion (`UServerRules` & QoL) and Phase 1 (`feature/p1-core-economy`)
+
+**Branches:** `feature/p0-server-rules-and-qol`, `feature/p1-core-economy` (merged to `main`)
+
+### What changed & why
+1. **Phase 0 Server Rules & Community QoL (`feature/p0-server-rules-and-qol`):**
+   - Added `UServerRules` (`Source/GameSettings/Public/ServerRules.h` & `Private/ServerRules.cpp`), a `UGameInstanceSubsystem` backed by `Config=Game` with live console/RCON commands (`wo.rules.list`, `wo.rules.set <RuleName> <Value>`) so every Rust-inspired survival feature is toggleable by server admins and modders.
+   - Doubled the default day/night cycle length in `ATimeOfDayManager` (from 20 minutes to 40 minutes) and added `SetDayNightSpeedMultiplier`.
+   - Tripled the default torch burn duration in `ATorchItem` (`BurnTickInterval = 3.0f` seconds instead of `1.0f`).
+   - Added design documentation in `Docs/Design/ServerRules.md`.
+2. **Phase 1: Core Economy, Primitives, and Basic Combat (`feature/p1-core-economy`):**
+   - **Tool-Tier Yield Scaling & Node Gates (`EToolTier`, `FHarvestTierMath`):** Implemented `Hand` (`0.5x`), `Stone` (`1.0x`), `Metal` (`1.5x`), and `Salvaged` (`2.0x`) yield multipliers and minimum tool tier gates on `AHarvestableResource`, `UHarvestableComponent`, and `AToolItem`.
+   - **Raw Resource Nodes & Animal/Smelter Loops:**
+     - Added `AWoodLogNode`, `AStoneOreNode`, `AMetalOreNode` (with HQM quality-tool bonus drop), `ASulfurOreNode`, and `AHQMOreNode` (`Source/GatherableResources/Public/Actors/OreResourceNodes.h`).
+     - Configured `ARagdoll` (`Ragdoll.cpp`) to drop `AnimalFat` (`10`), `BoneFragments` (`15`), and rare `Cloth` (`5`) when harvested.
+     - Configured `AItemSmelterBase` (`ItemSmelterBase.cpp`) with default `Wood -> Charcoal` byproduct and smelting for `MetalOre -> MetalFragments`, `SulfurOre -> Sulfur`, and `HighQualityMetalOre -> HighQualityMetal`.
+   - **Data-Driven Item & Workbench-Gated Recipe Registries:**
+     - Registered all 26 Phase 1 resources, tiered tools (`StoneHatchet`, `StonePickaxe`, `MetalHatchet`, `MetalPickaxe`), primitive weapons, and ammo types in `UInventoryComponent` (`InventoryComponent.cpp`).
+     - Added `RequiredWorkbenchTier` (`0..3`) to `FCraftingRecipe` (`CraftingRecipe.h`) and registered all Phase 1 crafting recipes in `UCraftingComponent` (`CraftingComponent.cpp`).
+   - **Primitive Weapons & Ammo (`Source/Weapons/`):**
+     - Added `ASpearItem` (`SpearItem.h/.cpp` for long-reach Wooden and Stone spears), `ACrossbowItem` (`CrossbowItem.h/.cpp` with 1.35x velocity multiplier and `WoodenArrow`/`BoneArrow` selection), `AHandmadeRevolverItem` (`HandmadeRevolverItem.h/.cpp`, 6-shot `PistolBullet` cylinder), and `ABoneArrowProjectile` (`BoneArrowProjectile.h/.cpp`).
+   - **4+1 Building Block Tiering, Stability & Twig Decay (`ABuildingBlock`):**
+     - Added `EBuildingTier` (`Twig -> Wood -> Stone -> SheetMetal -> Armored`) and `FBuildingTierRules` (`50 / 250 / 500 / 1000 / 2000 HP`, upgrade costs, hand-tool damage immunity on `Stone+` tiers, periodic decay on `Twig`, and support-hop structural stability calculation).
+   - **Low-Poly Blender 5.2 Assets (`Art/Blender/generate_phase1_assets.py`):**
+     - Generated flat-shaded low-poly `.blend` and `.fbx` assets for `SM_SulfurOreNode`, `SM_HQMOreNode`, `SM_WoodenSpear`, `SM_Crossbow`, `SM_HandmadeRevolver`, and `SM_BoneArrow`.
+
+### How it was verified
+- Compiled `WildOmissionEditor Win64 Development` cleanly on UE 5.8.4 (`Result: Succeeded`).
+- Executed headless UE 5.8 automation test suite (`WildOmission.Phase1` in `Source/WildOmissionCore/Tests/Phase1EconomyTests.cpp`) via `UnrealEditor-Cmd.exe -NullRHI`:
+  - `WildOmission.Phase1.HarvestTierScaling`: **Success**
+  - `WildOmission.Phase1.BuildingTiers`: **Success**
+  - `WildOmission.Phase1.ItemsAndRecipes`: **Success**
+
+### Next
+- **Phase 2 (`feature/p2-industrial-and-upkeep`):** Workbenches (Tier 1/2/3), Tool Cupboard 24h Upkeep & Territory Privilege enforcement, Code/Key Locks, Furnaces/Refineries, and Electricity Grid (`Generator`, `Switch`, `Splitter`, `Auto-Turret`, `Shotgun Trap`).
