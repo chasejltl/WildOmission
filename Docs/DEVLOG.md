@@ -190,3 +190,20 @@ Format: **what** changed, **why**, **how it was verified**, **what is next**. De
 
 ### Next
 - **Phase 5 (`feature/p5-polish-and-release`):** Full end-to-end automation suite verification across Phases 1–4, server admin & modding handbook, and player survival guide.
+
+
+---
+
+## 2026-11-05 - Phase 5: Polish, Guides, Full End-to-End Verification & Release
+
+**Branch:** `feature/p5-polish-and-release`
+
+### What changed & why
+1. **Player & Admin Documentation (`Docs/Guides/`):**
+   - Added [`Docs/Guides/SurvivalAndProgressionGuide.md`](Guides/SurvivalAndProgressionGuide.md) covering all Phase 1–4 progression loops: tool-tier yield scaling, ore smelting, 4+1 building block tiers, structural stability, Tool Cupboard 24-hour upkeep tax brackets, Workbenches & Scrap research, electrical circuits & automated traps, radiation monuments & hackable locked crates, 6-gene crop crossbreeding, extreme weather thermal survival, and Scientist/Patrol Helicopter boss combat.
+   - Added [`Docs/Guides/ServerAdminAndModdingGuide.md`](Guides/ServerAdminAndModdingGuide.md) documenting live RCON/console commands (`wo.rules.list`, `wo.rules.set`, `wo.rules.reset`, `wo.rules.save`), the full `DefaultGame.ini` / `Game.ini` `[/Script/GameSettings.ServerRules]` reference, and headless Blender 5.2 asset generation.
+2. **End-to-End Automation Test Runner (`Tools/RunAllTests.bat`):**
+   - Added [`Tools/RunAllTests.bat`](../Tools/RunAllTests.bat) to execute all 12 UE 5.8 automation test suites across Phases 1–4 in a single headless pass.
+
+### How it was verified
+- Executed `Tools/RunAllTests.bat` (`WildOmission.Phase1+WildOmission.Phase2+WildOmission.Phase3+WildOmission.Phase4`, 12 tests total) with `EXIT CODE: 0`.
