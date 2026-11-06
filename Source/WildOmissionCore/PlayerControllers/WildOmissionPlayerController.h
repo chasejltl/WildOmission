@@ -78,13 +78,28 @@ public:
 	void OnPlayerDeath(const FVector& DeathLocation);
 
 	//*****************************
-	// Console functions
+	// Console & Python Base Builder functions
 	UFUNCTION(Exec)
 	void Kill();
 
-	// This isn't really used anymore
 	UFUNCTION(Exec)
 	void LogLocalInventoryContents();
+
+	/** Spawns a base from a Python-generated JSON blueprint in Tools/BaseBuilder/Blueprints/<BlueprintName>.json or Saved/BaseBlueprints/<BlueprintName>.json */
+	UFUNCTION(Exec, BlueprintCallable, Category = "BaseBuilder")
+	void BuildBase(const FString& BlueprintName);
+
+	/** Exports all deployables/building blocks within RadiusCm of the player to Saved/BaseBlueprints/<BlueprintName>.json */
+	UFUNCTION(Exec, BlueprintCallable, Category = "BaseBuilder")
+	void ExportBase(const FString& BlueprintName, float RadiusCm = 3500.0f);
+
+	/** Gives any item by ID and quantity to the player's inventory */
+	UFUNCTION(Exec, BlueprintCallable, Category = "BaseBuilder")
+	void GiveItem(const FString& ItemName, int32 Quantity = 1);
+
+	/** Gives a starter kit of weapons, ammo, storage barrels, electrical, lighting, and building materials */
+	UFUNCTION(Exec, BlueprintCallable, Category = "BaseBuilder")
+	void GiveStarterKit();
 
 	virtual void SetSavedLocationToCurrentLocation() override;
 	virtual void SetLastDeathLocation(const FVector& DeathLocation) override;
@@ -166,5 +181,17 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void Server_SetSavedLocationToCurrentLocation();
+
+	UFUNCTION(Server, Reliable)
+	void Server_BuildBase(const FString& BlueprintName);
+
+	UFUNCTION(Server, Reliable)
+	void Server_ExportBase(const FString& BlueprintName, float RadiusCm);
+
+	UFUNCTION(Server, Reliable)
+	void Server_GiveItem(const FName& ItemName, int32 Quantity);
+
+	UFUNCTION(Server, Reliable)
+	void Server_GiveStarterKit();
 
 };

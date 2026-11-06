@@ -25,6 +25,19 @@
 #include "UI/GameplayMenuWidget.h"
 #include "WildOmissionCore/UI/Player/DeathMenuWidget.h"
 
+// Deployables & Base Builder Stuff
+#include "Deployables/Deployable.h"
+#include "Deployables/BuildingBlock.h"
+#include "Deployables/ToolCupboard.h"
+#include "Items/DeployableItemBase.h"
+#include "EngineUtils.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
+#include "Serialization/JsonReader.h"
+#include "Serialization/JsonSerializer.h"
+#include "Dom/JsonObject.h"
+#include "Dom/JsonValue.h"
+
 // Engine Stuff
 #include "GameFramework/GameSession.h"
 #include "Net/UnrealNetwork.h"
@@ -366,6 +379,26 @@ void AWildOmissionPlayerController::LogLocalInventoryContents()
 	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0f, FColor::Green, FString::Printf(TEXT("Player: %s"), *WildOmissionCharacter->GetActorNameOrLabel()));
 }
 
+void AWildOmissionPlayerController::BuildBase(const FString& BlueprintName)
+{
+	Server_BuildBase(BlueprintName);
+}
+
+void AWildOmissionPlayerController::ExportBase(const FString& BlueprintName, float RadiusCm)
+{
+	Server_ExportBase(BlueprintName, RadiusCm);
+}
+
+void AWildOmissionPlayerController::GiveItem(const FString& ItemName, int32 Quantity)
+{
+	Server_GiveItem(FName(*ItemName), FMath::Max(1, Quantity));
+}
+
+void AWildOmissionPlayerController::GiveStarterKit()
+{
+	Server_GiveStarterKit();
+}
+
 void AWildOmissionPlayerController::SetSavedLocationToCurrentLocation()
 {
 	Server_SetSavedLocationToCurrentLocation();
@@ -641,12 +674,324 @@ void AWildOmissionPlayerController::Server_SetSavedLocationToCurrentLocation_Imp
 void AWildOmissionPlayerController::Server_SendMessage_Implementation(APlayerState* Sender, const FString& Message)
 {
 	AGameChatManager* ChatManager = AGameChatManager::GetGameChatManager();
+
+	FString Trimmed = Message.TrimStartAndEnd();
+	if (Trimmed.StartsWith(TEXT("/")))
+	{
+		TArray<FString> Tokens;
+		Trimmed.ParseIntoArrayWS(Tokens);
+		if (Tokens.Num() > 0)
+		{
+			const FString Cmd = Tokens[0].ToLower();
+			if (Cmd == TEXT("/buildbase") && Tokens.Num() >= 2)
+			{
+				Server_BuildBase(Tokens[1]);
+				return;
+			}
+			else if (Cmd == TEXT("/exportbase") && Tokens.Num() >= 2)
+			{
+				const float Radius = (Tokens.Num() >= 3) ? FCString::Atof(*Tokens[2]) : 3500.0f;
+				Server_ExportBase(Tokens[1], Radius);
+				return;
+			}
+			else if (Cmd == TEXT("/give") && Tokens.Num() >= 2)
+			{
+				const int32 Qty = (Tokens.Num() >= 3) ? FCString::Atoi(*Tokens[2]) : 1;
+				Server_GiveItem(FName(*Tokens[1]), FMath::Max(1, Qty));
+				return;
+			}
+			else if (Cmd == TEXT("/kit") || Cmd == TEXT("/giveall"))
+			{
+				Server_GiveStarterKit();
+				return;
+			}
+		}
+	}
+
 	if (ChatManager == nullptr)
 	{
 		return;
 	}
 
 	ChatManager->SendMessage(Sender, Message, EChatMessageType::STANDARD);
+}
+
+void AWildOmissionPlayerController::Server_BuildBase_Implementation(const FString& BlueprintName)
+{
+	UWorld* World = GetWorld();
+	APawn* OurPawn = GetPawn();
+	if (World == nullptr || OurPawn == nullptr)
+	{
+		return;
+	}
+
+	FString CleanName = BlueprintName.TrimStartAndEnd();
+	if (CleanName.EndsWith(TEXT(".json")))
+	{
+		CleanName.LeftChopInline(5);
+	}
+
+	FString CandidateSaved = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("BaseBlueprints"), CleanName + TEXT(".json"));
+	FString CandidateTools = FPaths::Combine(FPaths::ProjectDir(), TEXT("Tools/BaseBuilder/Blueprints"), CleanName + TEXT(".json"));
+
+	FString FilePath = FPaths::FileExists(CandidateSaved) ? CandidateSaved : CandidateTools;
+	FString JsonContent;
+	if (!FFileHelper::LoadFileToString(JsonContent, *FilePath))
+	{
+		const FString ErrMsg = FString::Printf(TEXT("[BaseBuilder] Blueprint '%s' not found in Saved/BaseBlueprints or Tools/BaseBuilder/Blueprints."), *CleanName);
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 8.0f, FColor::Red, ErrMsg);
+		}
+		if (AGameChatManager* ChatManager = AGameChatManager::GetGameChatManager())
+		{
+			ChatManager->SendMessage(PlayerState, ErrMsg, EChatMessageType::STANDARD);
+		}
+		return;
+	}
+
+	TSharedPtr<FJsonObject> RootObj;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonContent);
+	if (!FJsonSerializer::Deserialize(Reader, RootObj) || !RootObj.IsValid())
+	{
+		return;
+	}
+
+	// Calculate BaseOrigin 600cm in front of the player, snapped to terrain height
+	const float SnappedYaw = FMath::RoundToFloat(GetControlRotation().Yaw / 90.0f) * 90.0f;
+	const FRotator BaseFrameRot(0.0f, SnappedYaw, 0.0f);
+	FVector BaseOrigin = OurPawn->GetActorLocation() + BaseFrameRot.Vector() * 600.0f;
+
+	FHitResult GroundHit;
+	FCollisionQueryParams TraceParams;
+	TraceParams.AddIgnoredActor(OurPawn);
+	if (World->LineTraceSingleByChannel(GroundHit, BaseOrigin + FVector(0.0f, 0.0f, 1500.0f), BaseOrigin - FVector(0.0f, 0.0f, 2500.0f), ECC_Visibility, TraceParams))
+	{
+		BaseOrigin.Z = GroundHit.ImpactPoint.Z;
+	}
+
+	const TArray<TSharedPtr<FJsonValue>>* PiecesArray = nullptr;
+	if (!RootObj->TryGetArrayField(TEXT("pieces"), PiecesArray) || PiecesArray == nullptr)
+	{
+		return;
+	}
+
+	int32 SpawnedCount = 0;
+	for (const TSharedPtr<FJsonValue>& Val : *PiecesArray)
+	{
+		const TSharedPtr<FJsonObject> PieceObj = Val->AsObject();
+		if (!PieceObj.IsValid())
+		{
+			continue;
+		}
+
+		FString ItemIDStr;
+		if (!PieceObj->TryGetStringField(TEXT("item"), ItemIDStr))
+		{
+			continue;
+		}
+
+		FVector Offset = FVector::ZeroVector;
+		const TArray<TSharedPtr<FJsonValue>>* OffsetArr = nullptr;
+		if (PieceObj->TryGetArrayField(TEXT("offset"), OffsetArr) && OffsetArr != nullptr && OffsetArr->Num() >= 3)
+		{
+			Offset.X = (*OffsetArr)[0]->AsNumber();
+			Offset.Y = (*OffsetArr)[1]->AsNumber();
+			Offset.Z = (*OffsetArr)[2]->AsNumber();
+		}
+
+		FRotator LocalRot = FRotator::ZeroRotator;
+		const TArray<TSharedPtr<FJsonValue>>* RotArr = nullptr;
+		if (PieceObj->TryGetArrayField(TEXT("rotation"), RotArr) && RotArr != nullptr && RotArr->Num() >= 3)
+		{
+			LocalRot.Pitch = (*RotArr)[0]->AsNumber();
+			LocalRot.Yaw = (*RotArr)[1]->AsNumber();
+			LocalRot.Roll = (*RotArr)[2]->AsNumber();
+		}
+
+		// Resolve deployable class from DT_Items / RegisteredItemData
+		UClass* DeployableClass = nullptr;
+		FItemData* ItemData = UInventoryComponent::GetItemData(FName(*ItemIDStr));
+		if (ItemData != nullptr && ItemData->EquipItemClass != nullptr)
+		{
+			if (const ADeployableItemBase* EquipCDO = Cast<ADeployableItemBase>(ItemData->EquipItemClass->GetDefaultObject()))
+			{
+				DeployableClass = EquipCDO->GetDeployableActorClass();
+			}
+		}
+		if (DeployableClass == nullptr)
+		{
+			DeployableClass = ABuildingBlock::StaticClass();
+		}
+
+		const FVector WorldPos = BaseOrigin + BaseFrameRot.RotateVector(Offset);
+		const FRotator WorldRot = FRotator(LocalRot.Pitch, SnappedYaw + LocalRot.Yaw, LocalRot.Roll);
+		FTransform SpawnTransform(WorldRot, WorldPos);
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		ADeployable* Spawned = World->SpawnActor<ADeployable>(DeployableClass, SpawnTransform, SpawnParams);
+		if (Spawned != nullptr)
+		{
+			Spawned->OnSpawn();
+			if (AToolCupboard* TC = Cast<AToolCupboard>(Spawned))
+			{
+				TC->AuthorizePlayer(GetUniqueID());
+			}
+			SpawnedCount++;
+		}
+	}
+
+	const FString SuccessMsg = FString::Printf(TEXT("[BaseBuilder] Spawned Python base '%s' (%d structures placed)!"), *CleanName, SpawnedCount);
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 8.0f, FColor::Green, SuccessMsg);
+	}
+	if (AGameChatManager* ChatManager = AGameChatManager::GetGameChatManager())
+	{
+		ChatManager->SendMessage(PlayerState, SuccessMsg, EChatMessageType::STANDARD);
+	}
+}
+
+void AWildOmissionPlayerController::Server_ExportBase_Implementation(const FString& BlueprintName, float RadiusCm)
+{
+	UWorld* World = GetWorld();
+	APawn* OurPawn = GetPawn();
+	if (World == nullptr || OurPawn == nullptr)
+	{
+		return;
+	}
+
+	FString CleanName = BlueprintName.TrimStartAndEnd();
+	if (CleanName.IsEmpty())
+	{
+		CleanName = TEXT("exported_base");
+	}
+
+	const FVector Origin = OurPawn->GetActorLocation();
+	TArray<TSharedPtr<FJsonValue>> PiecesArray;
+
+	for (TActorIterator<ADeployable> It(World); It; ++It)
+	{
+		ADeployable* Dep = *It;
+		if (!IsValid(Dep))
+		{
+			continue;
+		}
+
+		const float DistSq = FVector::DistSquared(Origin, Dep->GetActorLocation());
+		if (DistSq > FMath::Square(RadiusCm))
+		{
+			continue;
+		}
+
+		TSharedPtr<FJsonObject> PieceObj = MakeShared<FJsonObject>();
+		PieceObj->SetStringField(TEXT("item"), Dep->GetItemID().IsNone() ? TEXT("foundation.stone") : Dep->GetItemID().ToString());
+
+		const FVector RelOffset = Dep->GetActorLocation() - Origin;
+		TArray<TSharedPtr<FJsonValue>> OffsetVals;
+		OffsetVals.Add(MakeShared<FJsonValueNumber>(FMath::RoundToFloat(RelOffset.X)));
+		OffsetVals.Add(MakeShared<FJsonValueNumber>(FMath::RoundToFloat(RelOffset.Y)));
+		OffsetVals.Add(MakeShared<FJsonValueNumber>(FMath::RoundToFloat(RelOffset.Z)));
+		PieceObj->SetArrayField(TEXT("offset"), OffsetVals);
+
+		const FRotator Rot = Dep->GetActorRotation();
+		TArray<TSharedPtr<FJsonValue>> RotVals;
+		RotVals.Add(MakeShared<FJsonValueNumber>(FMath::RoundToFloat(Rot.Pitch)));
+		RotVals.Add(MakeShared<FJsonValueNumber>(FMath::RoundToFloat(Rot.Yaw)));
+		RotVals.Add(MakeShared<FJsonValueNumber>(FMath::RoundToFloat(Rot.Roll)));
+		PieceObj->SetArrayField(TEXT("rotation"), RotVals);
+
+		PiecesArray.Add(MakeShared<FJsonValueObject>(PieceObj));
+	}
+
+	TSharedPtr<FJsonObject> RootObj = MakeShared<FJsonObject>();
+	RootObj->SetStringField(TEXT("name"), CleanName);
+	RootObj->SetArrayField(TEXT("pieces"), PiecesArray);
+
+	FString OutputString;
+	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutputString);
+	FJsonSerializer::Serialize(RootObj.ToSharedRef(), Writer);
+
+	const FString OutPath = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("BaseBlueprints"), CleanName + TEXT(".json"));
+	FFileHelper::SaveStringToFile(OutputString, *OutPath);
+
+	const FString Msg = FString::Printf(TEXT("[BaseBuilder] Exported %d structures to Saved/BaseBlueprints/%s.json"), PiecesArray.Num(), *CleanName);
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 8.0f, FColor::Cyan, Msg);
+	}
+	if (AGameChatManager* ChatManager = AGameChatManager::GetGameChatManager())
+	{
+		ChatManager->SendMessage(PlayerState, Msg, EChatMessageType::STANDARD);
+	}
+}
+
+void AWildOmissionPlayerController::Server_GiveItem_Implementation(const FName& ItemName, int32 Quantity)
+{
+	APawn* OurPawn = GetPawn();
+	if (OurPawn == nullptr)
+	{
+		return;
+	}
+
+	UInventoryComponent* Inv = OurPawn->FindComponentByClass<UInventoryComponent>();
+	if (Inv == nullptr)
+	{
+		return;
+	}
+
+	FInventoryItem Item;
+	Item.Name = ItemName;
+	Item.Quantity = FMath::Max(1, Quantity);
+	Inv->AddItem(Item);
+}
+
+void AWildOmissionPlayerController::Server_GiveStarterKit_Implementation()
+{
+	APawn* OurPawn = GetPawn();
+	if (OurPawn == nullptr)
+	{
+		return;
+	}
+
+	UInventoryComponent* Inv = OurPawn->FindComponentByClass<UInventoryComponent>();
+	if (Inv == nullptr)
+	{
+		return;
+	}
+
+	const TArray<TPair<FName, int32>> KitItems = {
+		{ TEXT("AssaultRifle"), 1 },
+		{ TEXT("CombatShotgun"), 1 },
+		{ TEXT("BoltActionRifle"), 1 },
+		{ TEXT("RifleBullet"), 128 },
+		{ TEXT("TwelveGaugeBuckshot"), 64 },
+		{ TEXT("TimedExplosiveCharge"), 10 },
+		{ TEXT("StorageBarrel"), 1 },
+		{ TEXT("SolarPanel"), 1 },
+		{ TEXT("IndustrialWallLight"), 1 },
+		{ TEXT("CeilingFloodLight"), 1 },
+		{ TEXT("ArmoredFoundation"), 10 },
+		{ TEXT("ArmoredWall"), 10 },
+		{ TEXT("HighExternalStoneWall"), 5 },
+		{ TEXT("MedicalSyringe"), 2 },
+		{ TEXT("HazmatSuit"), 1 }
+	};
+
+	for (const TPair<FName, int32>& Pair : KitItems)
+	{
+		FInventoryItem Item;
+		Item.Name = Pair.Key;
+		Item.Quantity = Pair.Value;
+		Inv->AddItem(Item);
+	}
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 8.0f, FColor::Green, TEXT("[BaseBuilder] Added full Guns, Ammo, Storage Barrel, Electrical, Lighting & Armored Building Kit to Inventory!"));
+	}
 }
 
 bool AWildOmissionPlayerController::Server_KickPlayer_Validate(APlayerController* PlayerControllerToKick)

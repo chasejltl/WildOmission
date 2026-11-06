@@ -1,0 +1,944 @@
+{
+  "name": "honeycomb_clan_fortress",
+  "grid_size": 300.0,
+  "wall_height": 300.0,
+  "piece_count": 72,
+  "pieces": [
+    {
+      "item": "foundation.metal",
+      "offset": [
+        -300.0,
+        -300.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "foundation.metal",
+      "offset": [
+        -300.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "foundation.metal",
+      "offset": [
+        -300.0,
+        300.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "foundation.metal",
+      "offset": [
+        0.0,
+        -300.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "foundation.metal",
+      "offset": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "foundation.metal",
+      "offset": [
+        0.0,
+        300.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "foundation.metal",
+      "offset": [
+        300.0,
+        -300.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "foundation.metal",
+      "offset": [
+        300.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "foundation.metal",
+      "offset": [
+        300.0,
+        300.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "wall.metal",
+      "offset": [
+        -450.0,
+        -300.0,
+        25.0
+      ],
+      "rotation": [
+        0.0,
+        180.0,
+        0.0
+      ]
+    },
+    {
+      "item": "wall.metal",
+      "offset": [
+        -300.0,
+        -450.0,
+        25.0
+      ],
+      "rotation": [
+        0.0,
+        270.0,
+        0.0
+      ]
+    },
+    {
+      "item": "wall.doorway.metal",
+      "offset": [
+        -450.0,
+        0.0,
+        25.0
+      ],
+      "rotation": [
+        0.0,
+        180.0,
+        0.0
+      ]
+    },
+    {
+      "item": "door.metal",
+      "offset": [
+        -450.0,
+        0.0,
+        25.0
+      ],
+      "rotation": [
+        0.0,
+        180.0,
+        0.0
+      ]
+    },
+    {
+      "item": "wall.metal",
+      "offset": [
+        -450.0,
+        300.0,
+        25.0
+      ],
+      "rotation": [
+        0.0,
+        180.0,
+        0.0
+      ]
+    },
+    {
+      "item": "wall.metal",
+      "offset": [
+        -300.0,
+        450.0,
+        25.0
+      ],
+      "rotation": [
+        0.0,
+        90.0,
+        0.0
+      ]
+    },
+    {
+      "item": "wall.metal",
+      "offset": [
+        0.0,
+        -450.0,
+        25.0
+      ],
+      "rotation": [
+        0.0,
+        270.0,
+        0.0
+      ]
+    },
+    {
+      "item": "wall.metal",
+      "offset": [
+        0.0,
+        450.0,
+        25.0
+      ],
+      "rotation": [
+        0.0,
+        90.0,
+        0.0
+      ]
+    },
+    {
+      "item": "wall.metal",
+      "offset": [
+        450.0,
+        -300.0,
+        25.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "wall.metal",
+      "offset": [
+        300.0,
+        -450.0,
+        25.0
+      ],
+      "rotation": [
+        0.0,
+        270.0,
+        0.0
+      ]
+    },
+    {
+      "item": "wall.metal",
+      "offset": [
+        450.0,
+        0.0,
+        25.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "wall.metal",
+      "offset": [
+        450.0,
+        300.0,
+        25.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "wall.metal",
+      "offset": [
+        300.0,
+        450.0,
+        25.0
+      ],
+      "rotation": [
+        0.0,
+        90.0,
+        0.0
+      ]
+    },
+    {
+      "item": "ustairs.metal",
+      "offset": [
+        300.0,
+        300.0,
+        20.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "wall.window.metal",
+      "offset": [
+        -450.0,
+        -300.0,
+        325.0
+      ],
+      "rotation": [
+        0.0,
+        180.0,
+        0.0
+      ]
+    },
+    {
+      "item": "wall.window.metal",
+      "offset": [
+        -300.0,
+        -450.0,
+        325.0
+      ],
+      "rotation": [
+        0.0,
+        270.0,
+        0.0
+      ]
+    },
+    {
+      "item": "wall.window.metal",
+      "offset": [
+        -450.0,
+        0.0,
+        325.0
+      ],
+      "rotation": [
+        0.0,
+        180.0,
+        0.0
+      ]
+    },
+    {
+      "item": "wall.window.metal",
+      "offset": [
+        -450.0,
+        300.0,
+        325.0
+      ],
+      "rotation": [
+        0.0,
+        180.0,
+        0.0
+      ]
+    },
+    {
+      "item": "wall.window.metal",
+      "offset": [
+        -300.0,
+        450.0,
+        325.0
+      ],
+      "rotation": [
+        0.0,
+        90.0,
+        0.0
+      ]
+    },
+    {
+      "item": "wall.window.metal",
+      "offset": [
+        0.0,
+        -450.0,
+        325.0
+      ],
+      "rotation": [
+        0.0,
+        270.0,
+        0.0
+      ]
+    },
+    {
+      "item": "wall.window.metal",
+      "offset": [
+        0.0,
+        450.0,
+        325.0
+      ],
+      "rotation": [
+        0.0,
+        90.0,
+        0.0
+      ]
+    },
+    {
+      "item": "wall.window.metal",
+      "offset": [
+        450.0,
+        -300.0,
+        325.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "wall.window.metal",
+      "offset": [
+        300.0,
+        -450.0,
+        325.0
+      ],
+      "rotation": [
+        0.0,
+        270.0,
+        0.0
+      ]
+    },
+    {
+      "item": "wall.window.metal",
+      "offset": [
+        450.0,
+        0.0,
+        325.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "wall.window.metal",
+      "offset": [
+        450.0,
+        300.0,
+        325.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "wall.window.metal",
+      "offset": [
+        300.0,
+        450.0,
+        325.0
+      ],
+      "rotation": [
+        0.0,
+        90.0,
+        0.0
+      ]
+    },
+    {
+      "item": "floor.metal",
+      "offset": [
+        -300.0,
+        -300.0,
+        300.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "floor.metal",
+      "offset": [
+        -300.0,
+        0.0,
+        300.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "floor.metal",
+      "offset": [
+        -300.0,
+        300.0,
+        300.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "floor.metal",
+      "offset": [
+        0.0,
+        -300.0,
+        300.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "floor.metal",
+      "offset": [
+        0.0,
+        0.0,
+        300.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "floor.metal",
+      "offset": [
+        0.0,
+        300.0,
+        300.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "floor.metal",
+      "offset": [
+        300.0,
+        -300.0,
+        300.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "floor.metal",
+      "offset": [
+        300.0,
+        0.0,
+        300.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "floor.metal",
+      "offset": [
+        -300.0,
+        -300.0,
+        600.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "floor.metal",
+      "offset": [
+        -300.0,
+        0.0,
+        600.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "floor.metal",
+      "offset": [
+        -300.0,
+        300.0,
+        600.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "floor.metal",
+      "offset": [
+        0.0,
+        -300.0,
+        600.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "floor.metal",
+      "offset": [
+        0.0,
+        0.0,
+        600.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "floor.metal",
+      "offset": [
+        0.0,
+        300.0,
+        600.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "floor.metal",
+      "offset": [
+        300.0,
+        -300.0,
+        600.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "floor.metal",
+      "offset": [
+        300.0,
+        0.0,
+        600.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "floor.metal",
+      "offset": [
+        300.0,
+        300.0,
+        600.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "cupboard.tool",
+      "offset": [
+        0.0,
+        -250.0,
+        30.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "WorkbenchT3",
+      "offset": [
+        0.0,
+        220.0,
+        30.0
+      ],
+      "rotation": [
+        0.0,
+        180.0,
+        0.0
+      ]
+    },
+    {
+      "item": "ResearchTable",
+      "offset": [
+        220.0,
+        0.0,
+        30.0
+      ],
+      "rotation": [
+        0.0,
+        270.0,
+        0.0
+      ]
+    },
+    {
+      "item": "ArmoredLocker",
+      "offset": [
+        -220.0,
+        220.0,
+        30.0
+      ],
+      "rotation": [
+        0.0,
+        90.0,
+        0.0
+      ]
+    },
+    {
+      "item": "StorageBarrel",
+      "offset": [
+        -240.0,
+        -200.0,
+        30.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "FuelBarrel",
+      "offset": [
+        240.0,
+        -200.0,
+        30.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "StorageBarrel",
+      "offset": [
+        -240.0,
+        -80.0,
+        30.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "FuelBarrel",
+      "offset": [
+        240.0,
+        -80.0,
+        30.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "StorageBarrel",
+      "offset": [
+        -240.0,
+        40.0,
+        30.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "FuelBarrel",
+      "offset": [
+        240.0,
+        40.0,
+        30.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "furnace",
+      "offset": [
+        180.0,
+        200.0,
+        30.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "furnace",
+      "offset": [
+        80.0,
+        200.0,
+        30.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "ceiling.light",
+      "offset": [
+        0.0,
+        0.0,
+        285.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "ceiling.light",
+      "offset": [
+        0.0,
+        0.0,
+        585.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "SolarPanel",
+      "offset": [
+        -250.0,
+        -250.0,
+        620.0
+      ],
+      "rotation": [
+        0.0,
+        45.0,
+        0.0
+      ]
+    },
+    {
+      "item": "SolarPanel",
+      "offset": [
+        -250.0,
+        250.0,
+        620.0
+      ],
+      "rotation": [
+        0.0,
+        135.0,
+        0.0
+      ]
+    },
+    {
+      "item": "LargeBattery",
+      "offset": [
+        0.0,
+        0.0,
+        620.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "WeatherRadar",
+      "offset": [
+        200.0,
+        0.0,
+        620.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "item": "AutoTurret",
+      "offset": [
+        -300.0,
+        0.0,
+        620.0
+      ],
+      "rotation": [
+        0.0,
+        180.0,
+        0.0
+      ]
+    },
+    {
+      "item": "AutoTurret",
+      "offset": [
+        300.0,
+        0.0,
+        620.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ]
+}

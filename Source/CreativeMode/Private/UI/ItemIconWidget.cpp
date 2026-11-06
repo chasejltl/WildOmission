@@ -19,6 +19,12 @@ void UItemIconWidget::Setup(UCreativeMenuWidget* InParentMenu, const FName& InIt
 	if (ItemData)
 	{
 		ItemIconBorder->SetBrushFromMaterial(ItemData->Thumbnail);
+		const FText TooltipText = FText::FromString(FString::Printf(TEXT("%s\n%s"), *ItemData->DisplayName, *ItemData->Description));
+		SetToolTipText(TooltipText);
+		if (ItemButton != nullptr)
+		{
+			ItemButton->SetToolTipText(TooltipText);
+		}
 	}
 
 	ItemButton->OnClicked.AddDynamic(this, &UItemIconWidget::OnClicked);

@@ -1,6 +1,7 @@
 @echo off
-REM Launches Wild Omission directly in Standalone Game mode (no Editor UI required)
-set UE_EDITOR="C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe"
-set UPROJECT="%~dp0..\WildOmission.uproject"
+setlocal
+set "UE_EDITOR=C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe"
+set "UPROJECT=%~dp0..\WildOmission.uproject"
 
-start "" %UE_EDITOR% %UPROJECT% -game -ResX=1920 -ResY=1080 -windowed -log
+echo Launching Wild Omission (Fast Standalone Mode - 1280x720 Windowed)...
+start "" "%UE_EDITOR%" "%UPROJECT%" -game -windowed -ResX=1280 -ResY=720 -NoVerifyGC -NoSplash -ExecCmds="r.DynamicGlobalIlluminationMethod 0, r.ReflectionMethod 2, r.Shadow.Virtual.Enable 0, sg.ShadowQuality 1, sg.GlobalIlluminationQuality 0, sg.ReflectionQuality 1, sg.PostProcessQuality 1, sg.EffectsQuality 1, sg.FoliageQuality 1, sg.ViewDistanceQuality 1, r.ScreenPercentage 85"

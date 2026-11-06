@@ -140,7 +140,7 @@ void UPlayerHUDWidget::SetGameMode(bool IsCreative)
 		return;
 	}
 
-	OpenSecondaryButtonTextBlock->SetText(FText::FromString(TEXT("Creative >")));
+	OpenSecondaryButtonTextBlock->SetText(FText::FromString(TEXT("Spawn Items >")));
 
 	if (Vitals)
 	{
@@ -155,7 +155,7 @@ void UPlayerHUDWidget::ToggleInventoryMenu(bool ForceOpen)
 		OpenMenuPanel();
 		SwitchToInventoryMenu();
 	}
-	else if (IsCraftingMenuOpen())
+	else if (IsCraftingMenuOpen() || IsCreativeMenuOpen())
 	{
 		SwitchToInventoryMenu();
 	}
@@ -325,6 +325,10 @@ void UPlayerHUDWidget::SwitchToInventoryMenu()
 {
 	MenuSwitcher->SetActiveWidget(InventoryPanel);
 	OpenSecondaryButton->SetVisibility(ESlateVisibility::Visible);
+	if (OpenSecondaryButtonTextBlock != nullptr)
+	{
+		OpenSecondaryButtonTextBlock->SetText(FText::FromString(GameModeIsCreative ? TEXT("Spawn Items >") : TEXT("Crafting >")));
+	}
 	InventoryMenu->Open();
 }
 
@@ -332,6 +336,11 @@ void UPlayerHUDWidget::SwitchToCraftingMenu()
 {
 	InventoryMenu->Close();
 	MenuSwitcher->SetActiveWidget(CraftingPanel);
+	OpenSecondaryButton->SetVisibility(ESlateVisibility::Visible);
+	if (OpenSecondaryButtonTextBlock != nullptr)
+	{
+		OpenSecondaryButtonTextBlock->SetText(FText::FromString(TEXT("Spawn Items >")));
+	}
 	CraftingMenu->Refresh();
 }
 
@@ -339,12 +348,25 @@ void UPlayerHUDWidget::SwitchToCreativeMenu()
 {
 	InventoryMenu->Close();
 	MenuSwitcher->SetActiveWidget(CreativePanel);
+	OpenSecondaryButton->SetVisibility(ESlateVisibility::Visible);
+	if (OpenSecondaryButtonTextBlock != nullptr)
+	{
+		OpenSecondaryButtonTextBlock->SetText(FText::FromString(TEXT("Crafting >")));
+	}
 	CreativeMenu->Refresh();
 }
 
 void UPlayerHUDWidget::OnOpenSecondaryMenuButtonClicked()
 {
-	if (GameModeIsCreative)
+	if (IsCraftingMenuOpen())
+	{
+		SwitchToCreativeMenu();
+	}
+	else if (IsCreativeMenuOpen())
+	{
+		SwitchToCraftingMenu();
+	}
+	else if (GameModeIsCreative)
 	{
 		SwitchToCreativeMenu();
 	}

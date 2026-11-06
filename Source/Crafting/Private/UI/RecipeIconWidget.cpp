@@ -13,7 +13,16 @@ void URecipeIconWidget::Setup(UCraftingMenuWidget* InParentMenu, const FCrafting
 	ParentMenu = InParentMenu;
 	ParentEntry = InParentEntry;
 
-	RecipeIconBorder->SetBrushFromMaterial(ParentEntry.YieldItemData->Thumbnail);
+	if (ParentEntry.YieldItemData != nullptr)
+	{
+		RecipeIconBorder->SetBrushFromMaterial(ParentEntry.YieldItemData->Thumbnail);
+		const FText TooltipText = FText::FromString(FString::Printf(TEXT("%s\n%s"), *ParentEntry.YieldItemData->DisplayName, *ParentEntry.YieldItemData->Description));
+		SetToolTipText(TooltipText);
+		if (RecipeButton != nullptr)
+		{
+			RecipeButton->SetToolTipText(TooltipText);
+		}
+	}
 
 	RecipeButton->OnClicked.AddDynamic(this, &URecipeIconWidget::OnClicked);
 }

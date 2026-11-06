@@ -46,7 +46,7 @@ void UCraftingMenuWidget::NativeConstruct()
 
 	OwnerInventory->OnUpdate.AddDynamic(this, &UCraftingMenuWidget::Refresh);
 
-	CategoryFilter = EItemCategory::Item;
+	CategoryFilter = EItemCategory::All;
 
 	SortByButton_All->Setup(this, EItemCategory::All);
 	SortByButton_Items->Setup(this, EItemCategory::Item);
@@ -61,6 +61,7 @@ void UCraftingMenuWidget::NativeConstruct()
 	CraftButton->OnClicked.AddDynamic(this, &UCraftingMenuWidget::Craft);
 
 	SelectedRecipe = TEXT("");
+	Refresh();
 }
 
 void UCraftingMenuWidget::Refresh()
@@ -72,7 +73,9 @@ void UCraftingMenuWidget::Refresh()
 void UCraftingMenuWidget::SetCategoryFilter(TEnumAsByte<EItemCategory> NewCategory)
 {
 	CategoryFilter = NewCategory;
+	SelectedRecipe = FName();
 	RefreshRecipesList();
+	RefreshDetailsPanel();
 }
 
 TEnumAsByte<EItemCategory> UCraftingMenuWidget::GetCategoryFilter() const
@@ -106,12 +109,17 @@ void UCraftingMenuWidget::RefreshRecipesList()
 		Entry.RecipeID = RecipeID;
 		Entry.CanCraft = CanCraftRecipe(RecipeID);
 		Entry.IngredientPercentage = GetRecipeIngredientPercentage(RecipeID);
-		Entry.YieldItemData = UInventoryComponent::GetItemData(RecipeID);
+		Entry.YieldItemData = YieldItemData;
 
 		RecipeEntries.Add(Entry);
 	}
 	
 	RecipeEntries.Sort();
+
+	if (SelectedRecipe == FName() && RecipeEntries.Num() > 0)
+	{
+		SelectedRecipe = RecipeEntries[0].RecipeID;
+	}
 
 	RecipesWrapBox->ClearChildren();
 	for (int32 i = 0; i < RecipeEntries.Num(); i++)
@@ -278,7 +286,7 @@ int32  UCraftingMenuWidget::GetRecipeIngredientPercentage(const FName& RecipeNam
 	UInventoryComponent* OwnerInventoryComponent = GetOwningPlayerPawn()->FindComponentByClass<UInventoryComponent>();
 	if (RecipeData == nullptr || OwnerInventoryComponent == nullptr)
 	{
-		return false;
+		return 0;
 	}
 
 	int32 IngredientTotal = 0;
@@ -289,6 +297,11 @@ int32  UCraftingMenuWidget::GetRecipeIngredientPercentage(const FName& RecipeNam
 
 		IngredientTotal += Ingredient.Quantity;
 		IngredientPossession += IngredientHasAmount;
+	}
+
+	if (IngredientTotal <= 0)
+	{
+		return 100;
 	}
 
 	float NormalizedRatio = static_cast<float>(IngredientPossession) / static_cast<float>(IngredientTotal);

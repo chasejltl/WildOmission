@@ -30,7 +30,7 @@ void UCreativeMenuWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 	
-	CategoryFilter = EItemCategory::Item;
+	CategoryFilter = EItemCategory::All;
 
 	SortByButton_All->Setup(this, EItemCategory::All);
 	SortByButton_Items->Setup(this, EItemCategory::Item);
@@ -48,6 +48,7 @@ void UCreativeMenuWidget::NativeConstruct()
 	GiveStackButton->OnClicked.AddDynamic(this, &UCreativeMenuWidget::GiveItemStack);
 	
 	SelectedItem = TEXT("");
+	Refresh();
 }
 
 void UCreativeMenuWidget::Refresh()
@@ -59,7 +60,9 @@ void UCreativeMenuWidget::Refresh()
 void UCreativeMenuWidget::SetCategoryFilter(TEnumAsByte<EItemCategory> NewCategory)
 {
 	CategoryFilter = NewCategory;
+	SelectedItem = FName();
 	RefreshItemList();
+	RefreshDetailsPanel();
 }
 
 TEnumAsByte<EItemCategory> UCreativeMenuWidget::GetCategoryFilter() const
@@ -91,8 +94,11 @@ void UCreativeMenuWidget::RefreshItemList()
 		
 		ItemList.Add(ItemID);
 	}
-	
-	//ItemList.Sort();
+
+	if (SelectedItem == FName() && ItemList.Num() > 0)
+	{
+		SelectedItem = ItemList[0];
+	}
 
 	ItemsWrapBox->ClearChildren();
 	for (int32 i = 0; i < ItemList.Num(); i++)

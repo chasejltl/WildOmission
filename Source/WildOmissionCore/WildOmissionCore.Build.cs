@@ -19,6 +19,6 @@ public class WildOmissionCore : ModuleRules
 			"WildOmissionAI", "WorldGeneration", "PhysicsGrabber", "Workshop"
 		});
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "CoreOnline", "Slate", "SlateCore", "OnlineSubsystem", "OnlineSubsystemSteam" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "CoreOnline", "Slate", "SlateCore", "OnlineSubsystem", "OnlineSubsystemSteam", "Json", "JsonUtilities" });
     }
 }
