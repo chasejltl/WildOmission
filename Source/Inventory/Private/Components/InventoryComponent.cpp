@@ -167,6 +167,77 @@ void UInventoryComponent::RemoveItem(const FInventoryItem& ItemToRemove)
 	OnRep_ServerState();
 }
 
+int32 UInventoryComponent::RemoveItemQuantity(const FName& ItemName, int32 QuantityToRemove)
+{
+	if (QuantityToRemove <= 0)
+	{
+		return 0;
+	}
+
+	AActor* OwningActor = GetOwner();
+	if (OwningActor == nullptr)
+	{
+		return 0;
+	}
+
+	const bool UseServerState = OwningActor->HasAuthority();
+	int32 Remaining = QuantityToRemove;
+	TArray<FInventorySlot>& SlotArray = UseServerState ? ServerState.Slots : Slots;
+	FInventoryContents& ContentsToModify = UseServerState ? ServerState.Contents : Contents;
+
+	for (FInventorySlot& Slot : SlotArray)
+	{
+		if (Slot.IsEmpty() || !FInventoryItem::CompareNames(Slot.Item, ItemName))
+		{
+			continue;
+		}
+
+		const FName ActualSlotName = Slot.Item.Name;
+		if (Slot.Item.Quantity <= Remaining)
+		{
+			const int32 RemovedFromSlot = Slot.Item.Quantity;
+			Remaining -= RemovedFromSlot;
+			ContentsToModify.RemoveItem(ActualSlotName, RemovedFromSlot);
+			Slot.ClearItem();
+		}
+		else
+		{
+			Slot.Item.Quantity -= Remaining;
+			ContentsToModify.RemoveItem(ActualSlotName, Remaining);
+			Remaining = 0;
+		}
+
+		if (Slot.Item.IsZero())
+		{
+			Slot.ClearItem();
+		}
+
+		if (Remaining == 0)
+		{
+			break;
+		}
+	}
+
+	OnRep_ServerState();
+	return QuantityToRemove - Remaining;
+}
+
+void UInventoryComponent::ClearAllItems()
+{
+	for (FInventorySlot& Slot : ServerState.Slots)
+	{
+		Slot.ClearItem();
+	}
+	for (FInventorySlot& Slot : Slots)
+	{
+		Slot.ClearItem();
+	}
+	ServerState.Contents.Contents.Empty();
+	Contents.Contents.Empty();
+
+	OnRep_ServerState();
+}
+
 void UInventoryComponent::SlotInteraction(const int32& SlotIndex, UInventoryManipulatorComponent* Manipulator, bool QuickMove, bool Primary)
 {
 	// Create an interaction

@@ -531,7 +531,7 @@ void AWildOmissionCharacter::HandleFly()
 		return;
 	}
 
-	if (!World->IsEditorWorld() && OurPlayerController->IsSurvivalMode())
+	if (!World->IsEditorWorld() && OurPlayerController->IsSurvivalMode() && !OurPlayerController->IsAdministrator() && !OurPlayerController->IsHost())
 	{
 		return;
 	}
@@ -1257,7 +1257,7 @@ bool AWildOmissionCharacter::Server_HandleFly_Validate()
 		return false;;
 	}
 
-	if (!World->IsEditorWorld() && OurPlayerController->IsSurvivalMode())
+	if (!World->IsEditorWorld() && OurPlayerController->IsSurvivalMode() && !OurPlayerController->IsAdministrator() && !OurPlayerController->IsHost())
 	{
 		return false;
 	}

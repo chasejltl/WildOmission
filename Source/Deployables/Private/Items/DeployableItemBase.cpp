@@ -7,6 +7,7 @@
 #include "Components/PlayerInventoryComponent.h"
 #include "Deployables/ToolCupboard.h"
 #include "Components/BuilderComponent.h"
+#include "ServerRules.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "UObject/ConstructorHelpers.h"
@@ -89,6 +90,13 @@ UClass* ADeployableItemBase::GetDeployableActorClass() const
 
 void ADeployableItemBase::OnPlace()
 {
+	// In Creative / Free-Build Mode, do not consume the item from the player's inventory when placing!
+	const UServerRules* Rules = UServerRules::Get(this);
+	if (Rules != nullptr && Rules->bCreativeFreeBuildEnabled)
+	{
+		return;
+	}
+
 	AActor* OwnerActor = GetOwner();
 	if (OwnerActor == nullptr)
 	{
@@ -322,6 +330,12 @@ void ADeployableItemBase::Client_DestroyPreview_Implementation()
 
 bool ADeployableItemBase::HasBuildingPrivilege(const FVector& LocationToTest) const
 {
+	const UServerRules* Rules = UServerRules::Get(this);
+	if (Rules != nullptr && Rules->bCreativeFreeBuildEnabled)
+	{
+		return true;
+	}
+
 	AActor* OwnerActor = GetOwner();
 	if (OwnerActor == nullptr)
 	{

@@ -3,6 +3,7 @@
 
 #include "Actors/HarvestableResource.h"
 #include "Components/InventoryComponent.h"
+#include "ServerRules.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "ChunkManager.h"
 #include "Components/ChunkInvokerComponent.h"
@@ -132,8 +133,10 @@ FInventoryItem AHarvestableResource::HandleYieldFromList(const TArray<FInventory
 	const int32 DropIndex = FMath::RandRange(0, DropList.Num() - 1);
 	if (!DropList.IsEmpty() && DropList.IsValidIndex(DropIndex))
 	{
+		const UServerRules* Rules = UServerRules::Get(this);
+		const float ServerGatherMult = (Rules != nullptr) ? Rules->ResourceGatherMultiplier : 1.0f;
 		Item = DropList[DropIndex];
-		Item.Quantity = FHarvestTierMath::CalculateScaledYield(Item.Quantity, GatherMultiplier, ToolTier, MinimumToolTier);
+		Item.Quantity = FHarvestTierMath::CalculateScaledYield(Item.Quantity, GatherMultiplier, ToolTier, MinimumToolTier, ServerGatherMult);
 	}
 
 	return Item;

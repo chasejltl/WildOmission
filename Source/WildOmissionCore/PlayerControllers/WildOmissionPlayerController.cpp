@@ -30,6 +30,11 @@
 #include "Deployables/BuildingBlock.h"
 #include "Deployables/ToolCupboard.h"
 #include "Items/DeployableItemBase.h"
+#include "ServerRules.h"
+#include "WorldItem.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Camera/CameraComponent.h"
+#include "Engine/DamageEvents.h"
 #include "EngineUtils.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
@@ -394,6 +399,91 @@ void AWildOmissionPlayerController::GiveItem(const FString& ItemName, int32 Quan
 	Server_GiveItem(FName(*ItemName), FMath::Max(1, Quantity));
 }
 
+void AWildOmissionPlayerController::AdminGive(const FString& ItemName, int32 Quantity)
+{
+	Server_GiveItem(FName(*ItemName), FMath::Max(1, Quantity));
+}
+
+void AWildOmissionPlayerController::AdminDeleteItem(const FString& ItemName, int32 Quantity)
+{
+	Server_AdminDeleteItem(FName(*ItemName), Quantity);
+}
+
+void AWildOmissionPlayerController::AdminClearInventory()
+{
+	Server_AdminClearInventory();
+}
+
+void AWildOmissionPlayerController::AdminToggleCreativeMode()
+{
+	Server_AdminToggleCreativeMode();
+}
+
+void AWildOmissionPlayerController::AdminToggleGodMode()
+{
+	Server_AdminToggleGodMode();
+}
+
+void AWildOmissionPlayerController::AdminToggleFly()
+{
+	Server_AdminToggleFly();
+}
+
+void AWildOmissionPlayerController::AdminSetSpeed(float SpeedMultiplier)
+{
+	Server_AdminSetSpeed(SpeedMultiplier);
+}
+
+void AWildOmissionPlayerController::AdminHeal()
+{
+	Server_AdminHeal();
+}
+
+void AWildOmissionPlayerController::AdminSetGatherRate(float Multiplier)
+{
+	Server_AdminSetGatherRate(Multiplier);
+}
+
+void AWildOmissionPlayerController::AdminEntKill()
+{
+	Server_AdminEntKill();
+}
+
+void AWildOmissionPlayerController::AdminRepairBase(float RadiusCm)
+{
+	Server_AdminRepairBase(RadiusCm);
+}
+
+void AWildOmissionPlayerController::AdminUpgradeBase(int32 TierIndex, float RadiusCm)
+{
+	Server_AdminUpgradeBase(TierIndex, RadiusCm);
+}
+
+void AWildOmissionPlayerController::AdminClearWorldItems()
+{
+	Server_AdminClearWorldItems();
+}
+
+void AWildOmissionPlayerController::AdminTeleportToLook()
+{
+	Server_AdminTeleportToLook();
+}
+
+void AWildOmissionPlayerController::AdminTeleportXYZ(float X, float Y, float Z)
+{
+	Server_AdminTeleportXYZ(X, Y, Z);
+}
+
+void AWildOmissionPlayerController::AdminSetTime(float Hour0To24)
+{
+	Server_AdminSetTime(Hour0To24);
+}
+
+void AWildOmissionPlayerController::AdminSetWeather(const FString& WeatherType)
+{
+	Server_AdminSetWeather(WeatherType);
+}
+
 void AWildOmissionPlayerController::GiveStarterKit()
 {
 	Server_GiveStarterKit();
@@ -703,6 +793,97 @@ void AWildOmissionPlayerController::Server_SendMessage_Implementation(APlayerSta
 			else if (Cmd == TEXT("/kit") || Cmd == TEXT("/giveall"))
 			{
 				Server_GiveStarterKit();
+				return;
+			}
+			else if ((Cmd == TEXT("/delete") || Cmd == TEXT("/remove") || Cmd == TEXT("/del")) && Tokens.Num() >= 2)
+			{
+				const int32 Qty = (Tokens.Num() >= 3) ? FCString::Atoi(*Tokens[2]) : 1000000;
+				Server_AdminDeleteItem(FName(*Tokens[1]), Qty);
+				return;
+			}
+			else if (Cmd == TEXT("/clearinv") || Cmd == TEXT("/clear"))
+			{
+				Server_AdminClearInventory();
+				return;
+			}
+			else if (Cmd == TEXT("/creative") || Cmd == TEXT("/freebuild"))
+			{
+				Server_AdminToggleCreativeMode();
+				return;
+			}
+			else if (Cmd == TEXT("/god") || Cmd == TEXT("/godmode"))
+			{
+				Server_AdminToggleGodMode();
+				return;
+			}
+			else if (Cmd == TEXT("/fly") || Cmd == TEXT("/noclip"))
+			{
+				Server_AdminToggleFly();
+				return;
+			}
+			else if (Cmd == TEXT("/speed") && Tokens.Num() >= 2)
+			{
+				Server_AdminSetSpeed(FCString::Atof(*Tokens[1]));
+				return;
+			}
+			else if (Cmd == TEXT("/heal") || Cmd == TEXT("/cure"))
+			{
+				Server_AdminHeal();
+				return;
+			}
+			else if ((Cmd == TEXT("/gather") || Cmd == TEXT("/gatherrate")) && Tokens.Num() >= 2)
+			{
+				Server_AdminSetGatherRate(FCString::Atof(*Tokens[1]));
+				return;
+			}
+			else if (Cmd == TEXT("/entkill") || Cmd == TEXT("/destroy"))
+			{
+				Server_AdminEntKill();
+				return;
+			}
+			else if (Cmd == TEXT("/repairbase"))
+			{
+				const float Radius = (Tokens.Num() >= 2) ? FCString::Atof(*Tokens[1]) : 5000.0f;
+				Server_AdminRepairBase(Radius);
+				return;
+			}
+			else if (Cmd == TEXT("/upgradebase"))
+			{
+				const int32 TierIdx = (Tokens.Num() >= 2) ? FCString::Atoi(*Tokens[1]) : 4;
+				const float Radius = (Tokens.Num() >= 3) ? FCString::Atof(*Tokens[2]) : 5000.0f;
+				Server_AdminUpgradeBase(TierIdx, Radius);
+				return;
+			}
+			else if (Cmd == TEXT("/clearground") || Cmd == TEXT("/clearitems"))
+			{
+				Server_AdminClearWorldItems();
+				return;
+			}
+			else if (Cmd == TEXT("/tp") || Cmd == TEXT("/teleport"))
+			{
+				if (Tokens.Num() >= 4)
+				{
+					Server_AdminTeleportXYZ(FCString::Atof(*Tokens[1]), FCString::Atof(*Tokens[2]), FCString::Atof(*Tokens[3]));
+				}
+				else
+				{
+					Server_AdminTeleportToLook();
+				}
+				return;
+			}
+			else if (Cmd == TEXT("/tpxyz") && Tokens.Num() >= 4)
+			{
+				Server_AdminTeleportXYZ(FCString::Atof(*Tokens[1]), FCString::Atof(*Tokens[2]), FCString::Atof(*Tokens[3]));
+				return;
+			}
+			else if (Cmd == TEXT("/time") && Tokens.Num() >= 2)
+			{
+				Server_AdminSetTime(FCString::Atof(*Tokens[1]));
+				return;
+			}
+			else if (Cmd == TEXT("/weather") && Tokens.Num() >= 2)
+			{
+				Server_AdminSetWeather(Tokens[1]);
 				return;
 			}
 		}
@@ -1086,4 +1267,434 @@ void AWildOmissionPlayerController::Client_ShowDeathMenu_Implementation()
 	}
 
 	DeathMenu->Show();
+}
+
+void AWildOmissionPlayerController::Server_AdminDeleteItem_Implementation(const FName& ItemName, int32 Quantity)
+{
+	APawn* OurPawn = GetPawn();
+	if (OurPawn == nullptr)
+	{
+		return;
+	}
+
+	UInventoryComponent* Inv = OurPawn->FindComponentByClass<UInventoryComponent>();
+	if (Inv == nullptr)
+	{
+		return;
+	}
+
+	const int32 QtyToRemove = (Quantity <= 0) ? 1000000 : Quantity;
+	const int32 Removed = Inv->RemoveItemQuantity(ItemName, QtyToRemove);
+
+	const FString Msg = FString::Printf(TEXT("[AdminPanel] Deleted %d x '%s' from inventory."), Removed, *ItemName.ToString());
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 6.0f, FColor::Yellow, Msg);
+	}
+}
+
+void AWildOmissionPlayerController::Server_AdminClearInventory_Implementation()
+{
+	APawn* OurPawn = GetPawn();
+	if (OurPawn == nullptr)
+	{
+		return;
+	}
+
+	UInventoryComponent* Inv = OurPawn->FindComponentByClass<UInventoryComponent>();
+	if (Inv == nullptr)
+	{
+		return;
+	}
+
+	Inv->ClearAllItems();
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 6.0f, FColor::Yellow, TEXT("[AdminPanel] Cleared entire player inventory."));
+	}
+}
+
+void AWildOmissionPlayerController::Server_AdminToggleCreativeMode_Implementation()
+{
+	const UServerRules* CurrentRules = UServerRules::Get(this);
+	const bool bNewFreeBuild = (CurrentRules != nullptr) ? !CurrentRules->bCreativeFreeBuildEnabled : true;
+	UServerRules::SetGlobalCreativeFreeBuild(this, bNewFreeBuild);
+
+	GameModeIndex = bNewFreeBuild ? 1 : 0;
+
+	if (AWildOmissionCharacter* Char = Cast<AWildOmissionCharacter>(GetPawn()))
+	{
+		Char->SetGodMode(bNewFreeBuild);
+	}
+
+	const FString Msg = FString::Printf(TEXT("[AdminPanel] Creative / Free-Build Mode %s! (Infinite building, free Hammer upgrades/repairs, free crafting, God Mode %s)"),
+		bNewFreeBuild ? TEXT("ENABLED") : TEXT("DISABLED"),
+		bNewFreeBuild ? TEXT("ON") : TEXT("OFF"));
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 8.0f, bNewFreeBuild ? FColor::Green : FColor::Orange, Msg);
+	}
+	if (AGameChatManager* ChatManager = AGameChatManager::GetGameChatManager())
+	{
+		ChatManager->SendMessage(PlayerState, Msg, EChatMessageType::STANDARD);
+	}
+}
+
+void AWildOmissionPlayerController::Server_AdminToggleGodMode_Implementation()
+{
+	AWildOmissionCharacter* Char = Cast<AWildOmissionCharacter>(GetPawn());
+	if (Char == nullptr)
+	{
+		return;
+	}
+
+	UVitalsComponent* Vitals = Char->GetVitalsComponent();
+	const bool bNewGod = (Vitals != nullptr) ? !Vitals->IsGodMode() : true;
+	Char->SetGodMode(bNewGod);
+
+	const FString Msg = FString::Printf(TEXT("[AdminPanel] God Mode %s!"), bNewGod ? TEXT("ENABLED (Invincible + Full Vitals)") : TEXT("DISABLED"));
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 6.0f, bNewGod ? FColor::Green : FColor::Orange, Msg);
+	}
+	if (AGameChatManager* ChatManager = AGameChatManager::GetGameChatManager())
+	{
+		ChatManager->SendMessage(PlayerState, Msg, EChatMessageType::STANDARD);
+	}
+}
+
+void AWildOmissionPlayerController::Server_AdminToggleFly_Implementation()
+{
+	AWildOmissionCharacter* Char = Cast<AWildOmissionCharacter>(GetPawn());
+	if (Char == nullptr)
+	{
+		return;
+	}
+
+	UCharacterMovementComponent* MoveComp = Char->GetCharacterMovement();
+	if (MoveComp == nullptr)
+	{
+		return;
+	}
+
+	const bool bNewFlying = !MoveComp->IsFlying();
+	MoveComp->MaxFlySpeed = FMath::Max(MoveComp->MaxFlySpeed, 1800.0f);
+	MoveComp->SetMovementMode(bNewFlying ? EMovementMode::MOVE_Flying : EMovementMode::MOVE_Walking);
+
+	const FString Msg = FString::Printf(TEXT("[AdminPanel] Fly Mode %s! (Hold Space to ascend, Ctrl to descend)"), bNewFlying ? TEXT("ENABLED") : TEXT("DISABLED"));
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 6.0f, bNewFlying ? FColor::Cyan : FColor::Orange, Msg);
+	}
+}
+
+void AWildOmissionPlayerController::Server_AdminSetSpeed_Implementation(float SpeedMultiplier)
+{
+	AWildOmissionCharacter* Char = Cast<AWildOmissionCharacter>(GetPawn());
+	if (Char == nullptr)
+	{
+		return;
+	}
+
+	UCharacterMovementComponent* MoveComp = Char->GetCharacterMovement();
+	if (MoveComp == nullptr)
+	{
+		return;
+	}
+
+	const float ClampedMult = FMath::Clamp(SpeedMultiplier, 0.25f, 20.0f);
+	MoveComp->MaxWalkSpeed = 600.0f * ClampedMult;
+	MoveComp->MaxFlySpeed = 1200.0f * ClampedMult;
+	MoveComp->MaxSwimSpeed = 400.0f * ClampedMult;
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 6.0f, FColor::Cyan,
+			FString::Printf(TEXT("[AdminPanel] Movement & Fly Speed set to %.1fx!"), ClampedMult));
+	}
+}
+
+void AWildOmissionPlayerController::Server_AdminHeal_Implementation()
+{
+	APawn* OurPawn = GetPawn();
+	if (OurPawn == nullptr)
+	{
+		return;
+	}
+
+	UVitalsComponent* Vitals = OurPawn->FindComponentByClass<UVitalsComponent>();
+	if (Vitals == nullptr)
+	{
+		return;
+	}
+
+	Vitals->SetHealth(Vitals->GetMaxHealth());
+	Vitals->SetThirst(Vitals->GetMaxThirst());
+	Vitals->SetHunger(Vitals->GetMaxHunger());
+	Vitals->AddRadiationExposure(-1000.0f);
+	Vitals->AddBleeding(-1000.0f);
+	Vitals->ApplyMedicalItem(TEXT("Bandage"));
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 6.0f, FColor::Green,
+			TEXT("[AdminPanel] Restored 100% Health, Thirst, Hunger & cured all Bleeding/Radiation!"));
+	}
+}
+
+void AWildOmissionPlayerController::Server_AdminSetGatherRate_Implementation(float Multiplier)
+{
+	const float Clamped = FMath::Clamp(Multiplier, 0.1f, 1000.0f);
+	UServerRules::SetGlobalGatherMultiplier(this, Clamped);
+
+	const FString Msg = FString::Printf(TEXT("[AdminPanel] Server Gathering Multiplier set to %.1fx! (Applies immediately to all trees, ore nodes & ground pickups)"), Clamped);
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 8.0f, FColor::Green, Msg);
+	}
+	if (AGameChatManager* ChatManager = AGameChatManager::GetGameChatManager())
+	{
+		ChatManager->SendMessage(PlayerState, Msg, EChatMessageType::STANDARD);
+	}
+}
+
+void AWildOmissionPlayerController::Server_AdminEntKill_Implementation()
+{
+	UWorld* World = GetWorld();
+	APawn* OurPawn = GetPawn();
+	if (World == nullptr || OurPawn == nullptr)
+	{
+		return;
+	}
+
+	FVector Start = OurPawn->GetActorLocation() + FVector(0.0f, 0.0f, 60.0f);
+	if (UCameraComponent* Cam = OurPawn->FindComponentByClass<UCameraComponent>())
+	{
+		Start = Cam->GetComponentLocation();
+	}
+	const FVector End = Start + GetControlRotation().Vector() * 10000.0f;
+
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(OurPawn);
+
+	FHitResult Hit;
+	if (!World->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params) || !IsValid(Hit.GetActor()))
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 5.0f, FColor::Orange, TEXT("[AdminPanel] ent kill: No target actor found under crosshair."));
+		}
+		return;
+	}
+
+	AActor* TargetActor = Hit.GetActor();
+	if (TargetActor->IsA<AChunk>() || TargetActor == OurPawn)
+	{
+		return;
+	}
+
+	const FString TargetName = TargetActor->GetActorNameOrLabel();
+	if (ADeployable* Dep = Cast<ADeployable>(TargetActor))
+	{
+		Dep->Multi_PlayDestructionEffects();
+	}
+	TargetActor->Destroy();
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 6.0f, FColor::Red,
+			FString::Printf(TEXT("[AdminPanel] ent kill: Destroyed '%s'!"), *TargetName));
+	}
+}
+
+void AWildOmissionPlayerController::Server_AdminRepairBase_Implementation(float RadiusCm)
+{
+	UWorld* World = GetWorld();
+	APawn* OurPawn = GetPawn();
+	if (World == nullptr || OurPawn == nullptr)
+	{
+		return;
+	}
+
+	const FVector Origin = OurPawn->GetActorLocation();
+	const float RadiusSq = FMath::Square(FMath::Max(100.0f, RadiusCm));
+	int32 RepairedCount = 0;
+
+	for (TActorIterator<ADeployable> It(World); It; ++It)
+	{
+		ADeployable* Dep = *It;
+		if (!IsValid(Dep) || FVector::DistSquared(Origin, Dep->GetActorLocation()) > RadiusSq)
+		{
+			continue;
+		}
+
+		if (Dep->GetCurrentDurability() < Dep->GetMaxDurability())
+		{
+			FHitResult DummyHit;
+			FPointDamageEvent HealEvent(-100000.0f, DummyHit, FVector::UpVector, nullptr);
+			Dep->TakeDamage(-100000.0f, HealEvent, this, OurPawn);
+			RepairedCount++;
+		}
+	}
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 6.0f, FColor::Green,
+			FString::Printf(TEXT("[AdminPanel] Repaired %d structures within %.0fm to 100%% durability!"), RepairedCount, RadiusCm / 100.0f));
+	}
+}
+
+void AWildOmissionPlayerController::Server_AdminUpgradeBase_Implementation(int32 TierIndex, float RadiusCm)
+{
+	UWorld* World = GetWorld();
+	APawn* OurPawn = GetPawn();
+	if (World == nullptr || OurPawn == nullptr)
+	{
+		return;
+	}
+
+	const FVector Origin = OurPawn->GetActorLocation();
+	const float RadiusSq = FMath::Square(FMath::Max(100.0f, RadiusCm));
+	const EBuildingTier TargetTier = static_cast<EBuildingTier>(FMath::Clamp(TierIndex, 0, 4));
+	int32 UpgradedCount = 0;
+
+	for (TActorIterator<ABuildingBlock> It(World); It; ++It)
+	{
+		ABuildingBlock* Block = *It;
+		if (!IsValid(Block) || FVector::DistSquared(Origin, Block->GetActorLocation()) > RadiusSq)
+		{
+			continue;
+		}
+
+		Block->UpgradeToTier(TargetTier);
+		UpgradedCount++;
+	}
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 6.0f, FColor::Cyan,
+			FString::Printf(TEXT("[AdminPanel] Upgraded %d building blocks within %.0fm to Tier %d!"), UpgradedCount, RadiusCm / 100.0f, TierIndex));
+	}
+}
+
+void AWildOmissionPlayerController::Server_AdminClearWorldItems_Implementation()
+{
+	UWorld* World = GetWorld();
+	if (World == nullptr)
+	{
+		return;
+	}
+
+	int32 Cleared = 0;
+	for (TActorIterator<AWorldItem> It(World); It; ++It)
+	{
+		if (IsValid(*It))
+		{
+			It->Destroy();
+			Cleared++;
+		}
+	}
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 6.0f, FColor::Yellow,
+			FString::Printf(TEXT("[AdminPanel] Cleared %d dropped world items."), Cleared));
+	}
+}
+
+void AWildOmissionPlayerController::Server_AdminTeleportToLook_Implementation()
+{
+	UWorld* World = GetWorld();
+	APawn* OurPawn = GetPawn();
+	if (World == nullptr || OurPawn == nullptr)
+	{
+		return;
+	}
+
+	FVector Start = OurPawn->GetActorLocation() + FVector(0.0f, 0.0f, 60.0f);
+	if (UCameraComponent* Cam = OurPawn->FindComponentByClass<UCameraComponent>())
+	{
+		Start = Cam->GetComponentLocation();
+	}
+	const FVector End = Start + GetControlRotation().Vector() * 50000.0f;
+
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(OurPawn);
+
+	FHitResult Hit;
+	if (World->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
+	{
+		OurPawn->SetActorLocation(Hit.ImpactPoint + FVector(0.0f, 0.0f, 110.0f));
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 5.0f, FColor::Cyan,
+				FString::Printf(TEXT("[AdminPanel] Teleported to (%.0f, %.0f, %.0f)"), Hit.ImpactPoint.X, Hit.ImpactPoint.Y, Hit.ImpactPoint.Z));
+		}
+	}
+}
+
+void AWildOmissionPlayerController::Server_AdminTeleportXYZ_Implementation(float X, float Y, float Z)
+{
+	if (APawn* OurPawn = GetPawn())
+	{
+		OurPawn->SetActorLocation(FVector(X, Y, Z));
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 5.0f, FColor::Cyan,
+				FString::Printf(TEXT("[AdminPanel] Teleported to (%.0f, %.0f, %.0f)"), X, Y, Z));
+		}
+	}
+}
+
+void AWildOmissionPlayerController::Server_AdminSetTime_Implementation(float Hour0To24)
+{
+	UWorld* World = GetWorld();
+	if (World == nullptr)
+	{
+		return;
+	}
+
+	if (AWildOmissionGameMode* GM = Cast<AWildOmissionGameMode>(World->GetAuthGameMode()))
+	{
+		const float Normalized = FMath::Clamp(Hour0To24 / 24.0f, 0.0f, 1.0f);
+		GM->SetTime(Normalized);
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 5.0f, FColor::Cyan,
+				FString::Printf(TEXT("[AdminPanel] Time of Day set to %.1f:00 (normalized %.2f)"), Hour0To24, Normalized));
+		}
+	}
+}
+
+void AWildOmissionPlayerController::Server_AdminSetWeather_Implementation(const FString& WeatherType)
+{
+	UWorld* World = GetWorld();
+	if (World == nullptr)
+	{
+		return;
+	}
+
+	if (AWildOmissionGameMode* GM = Cast<AWildOmissionGameMode>(World->GetAuthGameMode()))
+	{
+		FString CleanWeather = WeatherType.TrimStartAndEnd();
+		if (CleanWeather.Equals(TEXT("clear"), ESearchCase::IgnoreCase))
+		{
+			CleanWeather = TEXT("Clear");
+		}
+		else if (CleanWeather.Equals(TEXT("rain"), ESearchCase::IgnoreCase))
+		{
+			CleanWeather = TEXT("Rain");
+		}
+		else if (CleanWeather.Equals(TEXT("tornado"), ESearchCase::IgnoreCase) || CleanWeather.Equals(TEXT("storm"), ESearchCase::IgnoreCase))
+		{
+			CleanWeather = TEXT("Tornado");
+		}
+		GM->Weather(CleanWeather);
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 5.0f, FColor::Cyan,
+				FString::Printf(TEXT("[AdminPanel] Weather set to '%s'"), *CleanWeather));
+		}
+	}
 }

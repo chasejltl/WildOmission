@@ -3,6 +3,7 @@
 #include "ServerRules.h"
 #include "Engine/World.h"
 #include "Engine/GameInstance.h"
+#include "Engine/Engine.h"
 #include "HAL/IConsoleManager.h"
 #include "UObject/UnrealType.h"
 #include "Log.h"
@@ -43,6 +44,7 @@ void UServerRules::ResetToDefaults()
 {
 	ResourceGatherMultiplier = 1.0f;
 	bEnforceToolTierGates = true;
+	bCreativeFreeBuildEnabled = false;
 
 	bTwigDecayEnabled = true;
 	TwigDecayDamagePerMinute = 2.0f;
@@ -72,14 +74,25 @@ bool UServerRules::SetRuleByString(const FString& Key, const FString& Value)
 		return false;
 	}
 
+	UServerRules* CDO = GetMutableDefault<UServerRules>();
+
 	if (FBoolProperty* BoolProp = CastField<FBoolProperty>(Prop))
 	{
 		const bool bVal = Value.Equals(TEXT("true"), ESearchCase::IgnoreCase) || Value == TEXT("1");
 		BoolProp->SetPropertyValue_InContainer(this, bVal);
+		if (CDO != nullptr && CDO != this)
+		{
+			BoolProp->SetPropertyValue_InContainer(CDO, bVal);
+		}
 	}
 	else if (FFloatProperty* FloatProp = CastField<FFloatProperty>(Prop))
 	{
-		FloatProp->SetPropertyValue_InContainer(this, FCString::Atof(*Value));
+		const float FltVal = FCString::Atof(*Value);
+		FloatProp->SetPropertyValue_InContainer(this, FltVal);
+		if (CDO != nullptr && CDO != this)
+		{
+			FloatProp->SetPropertyValue_InContainer(CDO, FltVal);
+		}
 	}
 	else
 	{
@@ -89,6 +102,35 @@ bool UServerRules::SetRuleByString(const FString& Key, const FString& Value)
 	SaveConfig();
 	OnServerRuleChanged.Broadcast(Prop->GetFName());
 	return true;
+}
+
+void UServerRules::SetGlobalGatherMultiplier(const UObject* WorldContextObject, float NewMultiplier)
+{
+	const float Clamped = FMath::Clamp(NewMultiplier, 0.1f, 1000.0f);
+	if (UServerRules* Active = UServerRules::Get(WorldContextObject))
+	{
+		Active->ResourceGatherMultiplier = Clamped;
+		Active->SaveConfig();
+		Active->OnServerRuleChanged.Broadcast(TEXT("ResourceGatherMultiplier"));
+	}
+	if (UServerRules* CDO = GetMutableDefault<UServerRules>())
+	{
+		CDO->ResourceGatherMultiplier = Clamped;
+	}
+}
+
+void UServerRules::SetGlobalCreativeFreeBuild(const UObject* WorldContextObject, bool bEnabled)
+{
+	if (UServerRules* Active = UServerRules::Get(WorldContextObject))
+	{
+		Active->bCreativeFreeBuildEnabled = bEnabled;
+		Active->SaveConfig();
+		Active->OnServerRuleChanged.Broadcast(TEXT("bCreativeFreeBuildEnabled"));
+	}
+	if (UServerRules* CDO = GetMutableDefault<UServerRules>())
+	{
+		CDO->bCreativeFreeBuildEnabled = bEnabled;
+	}
 }
 
 TArray<FString> UServerRules::GetRulesSummary() const
@@ -123,10 +165,32 @@ static FAutoConsoleCommandWithWorldAndArgs GServerRulesSetCmd(
 		if (Rules && Rules->SetRuleByString(Args[0], Args[1]))
 		{
 			UE_LOG(LogGameSettings, Display, TEXT("Updated server rule %s = %s"), *Args[0], *Args[1]);
+			if (GEngine)
+			{
+				GEngine->AddOnScreenDebugMessage(INDEX_NONE, 6.0f, FColor::Green, FString::Printf(TEXT("[Admin] Set %s = %s"), *Args[0], *Args[1]));
+			}
 		}
 		else
 		{
 			UE_LOG(LogGameSettings, Warning, TEXT("Unknown or unsupported server rule: %s"), *Args[0]);
+		}
+	})
+);
+
+static FAutoConsoleCommandWithWorldAndArgs GRustGatherRateCmd(
+	TEXT("gather.rate"),
+	TEXT("Rust-style gather rate command: gather.rate <Multiplier> (e.g. gather.rate 5)"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+	{
+		if (Args.Num() < 1)
+		{
+			return;
+		}
+		const float Mult = FMath::Max(0.1f, FCString::Atof(*Args[0]));
+		UServerRules::SetGlobalGatherMultiplier(World, Mult);
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 6.0f, FColor::Green, FString::Printf(TEXT("[Admin] Gather Rate Multiplier set to %.1fx"), Mult));
 		}
 	})
 );
@@ -144,6 +208,10 @@ static FAutoConsoleCommandWithWorld GServerRulesListCmd(
 		for (const FString& Line : Rules->GetRulesSummary())
 		{
 			UE_LOG(LogGameSettings, Display, TEXT("[ServerRules] %s"), *Line);
+			if (GEngine)
+			{
+				GEngine->AddOnScreenDebugMessage(INDEX_NONE, 8.0f, FColor::Cyan, FString::Printf(TEXT("[ServerRules] %s"), *Line));
+			}
 		}
 	})
 );

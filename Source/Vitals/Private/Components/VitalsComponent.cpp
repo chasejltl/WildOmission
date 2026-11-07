@@ -318,6 +318,16 @@ void UVitalsComponent::SetGodMode(bool InGodMode)
 	HealthCanDeplete = !InGodMode;
 	ThirstCanDeplete = !InGodMode;
 	HungerCanDeplete = !InGodMode;
+
+	if (InGodMode)
+	{
+		CurrentHealth = MaxHealth;
+		CurrentThirst = MaxThirst;
+		CurrentHunger = MaxHunger;
+		CurrentRadiation = 0.0f;
+		CurrentBleeding = 0.0f;
+		CurrentBodyTemperatureCelsius = 37.0f;
+	}
 }
 
 bool UVitalsComponent::IsGodMode() const
@@ -365,6 +375,12 @@ void UVitalsComponent::SetRadiationProtection(float InProtection01)
 
 void UVitalsComponent::AddRadiationExposure(float RawRads)
 {
+	if (!HealthCanDeplete)
+	{
+		CurrentRadiation = 0.0f;
+		return;
+	}
+
 	if (RawRads <= 0.0f)
 	{
 		CurrentRadiation = FMath::Clamp(CurrentRadiation + RawRads, 0.0f, 500.0f);
@@ -389,6 +405,12 @@ void UVitalsComponent::AddRadiationExposure(float RawRads)
 
 void UVitalsComponent::AddBleeding(float BleedAmount)
 {
+	if (!HealthCanDeplete)
+	{
+		CurrentBleeding = 0.0f;
+		return;
+	}
+
 	CurrentBleeding = FMath::Clamp(CurrentBleeding + BleedAmount, 0.0f, 100.0f);
 }
 
@@ -454,6 +476,12 @@ void UVitalsComponent::ApplyAmbientTemperature(float AmbientCelsius, float Delta
 {
 	if (DeltaSeconds <= 0.0f)
 	{
+		return;
+	}
+
+	if (!HealthCanDeplete)
+	{
+		CurrentBodyTemperatureCelsius = 37.0f;
 		return;
 	}
 

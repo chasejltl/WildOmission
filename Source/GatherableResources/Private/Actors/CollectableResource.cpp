@@ -4,6 +4,7 @@
 #include "Actors/CollectableResource.h"
 #include "Components/InventoryComponent.h"
 #include "Components/InventoryManipulatorComponent.h"
+#include "ServerRules.h"
 #include "ChunkManager.h"
 #include "Components/ChunkInvokerComponent.h"
 #include "NavModifierComponent.h"
@@ -62,10 +63,15 @@ void ACollectableResource::Interact(AActor* Interactor)
 		return;
 	}
 
-	// Add resource to collectors inventory
+	const UServerRules* Rules = UServerRules::Get(this);
+	const float ServerGatherMult = (Rules != nullptr) ? FMath::Max(0.1f, Rules->ResourceGatherMultiplier) : 1.0f;
+
+	// Add resource to collectors inventory scaled by ResourceGatherMultiplier
 	for (const FInventoryItem& YieldItem : Yield)
 	{
-		InteractorInventoryComponent->AddItem(YieldItem, true);
+		FInventoryItem ScaledYield = YieldItem;
+		ScaledYield.Quantity = FMath::Max(1, FMath::RoundToInt32(static_cast<float>(YieldItem.Quantity) * ServerGatherMult));
+		InteractorInventoryComponent->AddItem(ScaledYield, true);
 	}
 
 	// Play Collect effects

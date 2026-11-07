@@ -6,7 +6,7 @@ public class CreativeMode : ModuleRules
 {
     public CreativeMode(ReadOnlyTargetRules Target) : base(Target)
     {
-        PublicDependencyModuleNames.AddRange(new string[] { "Engine", "UMG", "Inventory" });
-        PrivateDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "CustomUI" });
+        PublicDependencyModuleNames.AddRange(new string[] { "Engine", "UMG", "Inventory", "GameSettings" });
+        PrivateDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "CustomUI", "Slate", "SlateCore" });
     }
 }

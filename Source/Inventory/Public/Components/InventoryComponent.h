@@ -33,6 +33,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void RemoveItem(const FInventoryItem& ItemToRemove);	
 
+	UFUNCTION(BlueprintCallable)
+	int32 RemoveItemQuantity(const FName& ItemName, int32 QuantityToRemove);
+
+	UFUNCTION(BlueprintCallable)
+	void ClearAllItems();
+
 	void SlotInteraction(const int32& SlotIndex, UInventoryManipulatorComponent* Manipulator, bool QuickMove, bool Primary = true);
 	
 	static FItemData* GetItemData(const FName& ItemID);

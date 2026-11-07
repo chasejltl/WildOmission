@@ -11,7 +11,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnServerRuleChangedSignature, FName
 /**
  * Server-level gameplay toggles and multipliers for Rust-style survival systems.
  * Configurable via DefaultGame.ini / Game.ini ([/Script/GameSettings.ServerRules]),
- * Blueprint / Admin UI panels, and console commands (wo.rules.list / wo.rules.set / wo.rules.save).
+ * Blueprint / Admin UI panels, and console commands (wo.rules.list / wo.rules.set / gather.rate).
  */
 UCLASS(Config = Game, DefaultConfig, BlueprintType)
 class GAMESETTINGS_API UServerRules : public UGameInstanceSubsystem
@@ -38,6 +38,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Server Rules")
 	bool SetRuleByString(const FString& Key, const FString& Value);
 
+	/** Directly set the resource gather multiplier across active subsystem and CDO. */
+	UFUNCTION(BlueprintCallable, Category = "Server Rules")
+	static void SetGlobalGatherMultiplier(const UObject* WorldContextObject, float NewMultiplier);
+
+	/** Directly set Creative Free-Build & Free-Craft mode across active subsystem and CDO. */
+	UFUNCTION(BlueprintCallable, Category = "Server Rules")
+	static void SetGlobalCreativeFreeBuild(const UObject* WorldContextObject, bool bEnabled);
+
 	/** Format all current rules as key=value lines for admin inspection. */
 	UFUNCTION(BlueprintCallable, Category = "Server Rules")
 	TArray<FString> GetRulesSummary() const;
@@ -49,6 +57,11 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, BlueprintReadWrite, Category = "Economy")
 	bool bEnforceToolTierGates;
+
+	// --- Admin / Creative Free-Build & Free-Craft ---
+
+	UPROPERTY(Config, EditAnywhere, BlueprintReadWrite, Category = "Admin")
+	bool bCreativeFreeBuildEnabled;
 
 	// --- Building, Upkeep & Base Defense (Phase 1 & 2) ---
 

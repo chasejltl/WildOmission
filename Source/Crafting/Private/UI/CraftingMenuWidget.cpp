@@ -13,6 +13,7 @@
 #include "IngredientRowWidget.h"
 #include "Components/CraftingComponent.h"
 #include "Components/InventoryComponent.h"
+#include "ServerRules.h"
 #include "UObject/ConstructorHelpers.h"
 
 UCraftingMenuWidget::UCraftingMenuWidget(const FObjectInitializer& ObjectInitializer) : UUserWidget(ObjectInitializer)
@@ -255,8 +256,19 @@ void UCraftingMenuWidget::Craft()
 bool UCraftingMenuWidget::CanCraftRecipe(const FName& RecipeName)
 {
 	FCraftingRecipe* RecipeData = UCraftingComponent::GetRecipe(RecipeName);
+	if (RecipeData == nullptr)
+	{
+		return false;
+	}
+
+	const UServerRules* Rules = UServerRules::Get(this);
+	if (Rules != nullptr && Rules->bCreativeFreeBuildEnabled)
+	{
+		return true;
+	}
+
 	UInventoryComponent* OwnerInventoryComponent = GetOwningPlayerPawn()->FindComponentByClass<UInventoryComponent>();
-	if (RecipeData == nullptr || OwnerInventoryComponent == nullptr)
+	if (OwnerInventoryComponent == nullptr)
 	{
 		return false;
 	}
@@ -283,8 +295,19 @@ bool UCraftingMenuWidget::CanCraftRecipe(const FName& RecipeName)
 int32  UCraftingMenuWidget::GetRecipeIngredientPercentage(const FName& RecipeName)
 {
 	FCraftingRecipe* RecipeData = UCraftingComponent::GetRecipe(RecipeName);
+	if (RecipeData == nullptr)
+	{
+		return 0;
+	}
+
+	const UServerRules* Rules = UServerRules::Get(this);
+	if (Rules != nullptr && Rules->bCreativeFreeBuildEnabled)
+	{
+		return 100;
+	}
+
 	UInventoryComponent* OwnerInventoryComponent = GetOwningPlayerPawn()->FindComponentByClass<UInventoryComponent>();
-	if (RecipeData == nullptr || OwnerInventoryComponent == nullptr)
+	if (OwnerInventoryComponent == nullptr)
 	{
 		return 0;
 	}

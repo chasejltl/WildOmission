@@ -10,6 +10,7 @@
 #include "UI/BuildingHammerWidget.h"
 #include "Deployables/Deployable.h"
 #include "Deployables/BuildingBlock.h"
+#include "ServerRules.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Engine/DamageEvents.h"
@@ -134,42 +135,53 @@ void ABuildingHammerItem::Server_UpgradeCurrentDeployable_Implementation()
 		return;
 	}
 
-	AActor* OwnerActor = GetOwner();
-	if (OwnerActor == nullptr)
+	const UServerRules* Rules = UServerRules::Get(this);
+	const bool bFreeBuild = (Rules != nullptr && Rules->bCreativeFreeBuildEnabled);
+	if (!bFreeBuild)
 	{
-		return;
-	}
-
-	UInventoryComponent* OwnerInventoryComponent = Cast<UInventoryComponent>(OwnerActor->FindComponentByClass<UInventoryComponent>());
-	if (OwnerInventoryComponent == nullptr)
-	{
-		return;
-	}
-
-	TArray<FInventoryItem> UpgradeCost;
-	if (!GetUpgradeCostForDeployable(HitBuildingBlock, UpgradeCost))
-	{
-		return;
-	}
-	
-	FInventoryContents* InventoryContents = OwnerInventoryComponent->GetContents();
-	if (InventoryContents == nullptr)
-	{
-		return;
-	}
-
-	for (const FInventoryItem& CostItem : UpgradeCost)
-	{
-		if (InventoryContents->GetItemQuantity(CostItem.Name) < CostItem.Quantity)
+		AActor* OwnerActor = GetOwner();
+		if (OwnerActor == nullptr)
 		{
 			return;
 		}
 
-		OwnerInventoryComponent->RemoveItem(CostItem);
+		UInventoryComponent* OwnerInventoryComponent = Cast<UInventoryComponent>(OwnerActor->FindComponentByClass<UInventoryComponent>());
+		if (OwnerInventoryComponent == nullptr)
+		{
+			return;
+		}
+
+		TArray<FInventoryItem> UpgradeCost;
+		if (!GetUpgradeCostForDeployable(HitBuildingBlock, UpgradeCost))
+		{
+			return;
+		}
+		
+		FInventoryContents* InventoryContents = OwnerInventoryComponent->GetContents();
+		if (InventoryContents == nullptr)
+		{
+			return;
+		}
+
+		for (const FInventoryItem& CostItem : UpgradeCost)
+		{
+			if (InventoryContents->GetItemQuantity(CostItem.Name) < CostItem.Quantity)
+			{
+				return;
+			}
+		}
+
+		for (const FInventoryItem& CostItem : UpgradeCost)
+		{
+			OwnerInventoryComponent->RemoveItem(CostItem);
+		}
 	}
 
 	HitBuildingBlock->Upgrade();
-	DecrementDurability();
+	if (!bFreeBuild)
+	{
+		DecrementDurability();
+	}
 }
 
 void ABuildingHammerItem::Server_DestroyCurrentDeployable_Implementation()
@@ -263,10 +275,21 @@ bool ABuildingHammerItem::GetUpgradeCostForDeployable(ADeployable* Deployable, T
 	{
 		return false;
 	}
+
+	const UServerRules* Rules = UServerRules::Get(Deployable);
+	if (Rules != nullptr && Rules->bCreativeFreeBuildEnabled)
+	{
+		OutCost.Empty();
+		return BuildingBlock->IsUpgradable();
+	}
 	
 	const FString BuildingBlockIDString = BuildingBlock->GetItemID().ToString();
 	FName UpgradeID = NAME_None;
-	if (BuildingBlockIDString.Contains(TEXT("wood")))
+	if (BuildingBlockIDString.Contains(TEXT("twig")))
+	{
+		UpgradeID = FName(BuildingBlockIDString.Replace(TEXT("twig"), TEXT("wood")));
+	}
+	else if (BuildingBlockIDString.Contains(TEXT("wood")))
 	{
 		UpgradeID = FName(BuildingBlockIDString.Replace(TEXT("wood"), TEXT("stone")));
 	}
@@ -276,7 +299,7 @@ bool ABuildingHammerItem::GetUpgradeCostForDeployable(ADeployable* Deployable, T
 	}
 	else if (BuildingBlockIDString.Contains(TEXT("metal")))
 	{
-		return false;
+		return BuildingBlock->GetNextUpgradeCost(OutCost);
 	}
 
 	FCraftingRecipe* UpgradeRecipe = UCraftingComponent::GetRecipe(UpgradeID);
@@ -348,6 +371,13 @@ bool ABuildingHammerItem::GetRepairCostForDeployable(ADeployable* Deployable, TA
 	if (!IsValid(Deployable))
 	{
 		return false;
+	}
+
+	const UServerRules* Rules = UServerRules::Get(Deployable);
+	if (Rules != nullptr && Rules->bCreativeFreeBuildEnabled)
+	{
+		OutCost.Empty();
+		return true;
 	}
 
 	const FName DeployableItemID = Deployable->GetItemID();
@@ -443,6 +473,12 @@ void ABuildingHammerItem::UpdateBuildingPrivilegeNotifications()
 
 bool ABuildingHammerItem::IsBuildRestrictedZone(const FVector& LocationToTest) const
 {
+	const UServerRules* Rules = UServerRules::Get(this);
+	if (Rules != nullptr && Rules->bCreativeFreeBuildEnabled)
+	{
+		return false;
+	}
+
 	AActor* OwnerActor = GetOwner();
 	if (OwnerActor == nullptr)
 	{
@@ -460,6 +496,12 @@ bool ABuildingHammerItem::IsBuildRestrictedZone(const FVector& LocationToTest) c
 
 bool ABuildingHammerItem::HasBuildingPrivilege(const FVector& LocationToTest) const
 {
+	const UServerRules* Rules = UServerRules::Get(this);
+	if (Rules != nullptr && Rules->bCreativeFreeBuildEnabled)
+	{
+		return true;
+	}
+
 	AActor* OwnerActor = GetOwner();
 	if (OwnerActor == nullptr)
 	{
@@ -482,40 +524,45 @@ void ABuildingHammerItem::AttemptDeployableRepair(ADeployable* DeployableToRepai
 	{
 		return;
 	}
-	
-	UInventoryComponent* OwnerInventoryComponent = GetOwner()->FindComponentByClass<UInventoryComponent>();
-	if (OwnerInventoryComponent == nullptr)
-	{
-		return;
-	}
-	
-	TArray<FInventoryItem> RepairCost;
-	if (!GetRepairCostForDeployable(DeployableToRepair, RepairCost))
-	{
-		return;
-	}
 
-	FInventoryContents* InventoryContents = OwnerInventoryComponent->GetContents();
-	if (InventoryContents == nullptr)
+	const UServerRules* Rules = UServerRules::Get(this);
+	const bool bFreeBuild = (Rules != nullptr && Rules->bCreativeFreeBuildEnabled);
+	if (!bFreeBuild)
 	{
-		return;
-	}
-
-	// Check first if we have enough to repair
-	for (const FInventoryItem& CostItem : RepairCost)
-	{
-		if (InventoryContents->GetItemQuantity(CostItem.Name) < CostItem.Quantity)
+		UInventoryComponent* OwnerInventoryComponent = GetOwner()->FindComponentByClass<UInventoryComponent>();
+		if (OwnerInventoryComponent == nullptr)
 		{
 			return;
 		}
-	}
+		
+		TArray<FInventoryItem> RepairCost;
+		if (!GetRepairCostForDeployable(DeployableToRepair, RepairCost))
+		{
+			return;
+		}
 
-	for (const FInventoryItem& CostItem : RepairCost)
-	{
-		OwnerInventoryComponent->RemoveItem(CostItem);
+		FInventoryContents* InventoryContents = OwnerInventoryComponent->GetContents();
+		if (InventoryContents == nullptr)
+		{
+			return;
+		}
+
+		// Check first if we have enough to repair
+		for (const FInventoryItem& CostItem : RepairCost)
+		{
+			if (InventoryContents->GetItemQuantity(CostItem.Name) < CostItem.Quantity)
+			{
+				return;
+			}
+		}
+
+		for (const FInventoryItem& CostItem : RepairCost)
+		{
+			OwnerInventoryComponent->RemoveItem(CostItem);
+		}
 	}
 	
-	const float RepairAmount = -10;
+	const float RepairAmount = bFreeBuild ? -10000.0f : -10.0f;
 	FPointDamageEvent HitByToolEvent(RepairAmount, HitResult, DirectionVector, nullptr);
 	DeployableToRepair->TakeDamage(RepairAmount, HitByToolEvent, GetOwnerPawn()->GetController(), this);
 }
@@ -534,6 +581,7 @@ bool ABuildingHammerItem::LineTraceOnVisibility(FHitResult& OutHitResult) const
 
 	FCollisionQueryParams CollisionParams;
 	CollisionParams.AddIgnoredActor(GetOwner());
+	CollisionParams.bTraceComplex = true;
 	CollisionParams.bTraceComplex = true;
 	CollisionParams.bReturnPhysicalMaterial = true;
 	

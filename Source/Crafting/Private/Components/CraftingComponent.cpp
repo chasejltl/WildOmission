@@ -281,6 +281,12 @@ bool UCraftingComponent::CanCraftRecipe(const FName& RecipeName) const
 		return false;
 	}
 
+	const UServerRules* Rules = UServerRules::Get(this);
+	if (Rules != nullptr && Rules->bCreativeFreeBuildEnabled)
+	{
+		return true;
+	}
+
 	if (RecipeData->RequiredWorkbenchTier > GetEffectiveWorkbenchTier())
 	{
 		return false;
@@ -316,25 +322,30 @@ void UCraftingComponent::Server_CraftItem_Implementation(const FName& ItemToCraf
 		return;
 	}
 	
-	FInventoryContents* InventoryContents = OwnerInventoryComponent->GetContents();
-	if (InventoryContents == nullptr)
+	const UServerRules* Rules = UServerRules::Get(this);
+	const bool bFreeBuild = (Rules != nullptr && Rules->bCreativeFreeBuildEnabled);
+	if (!bFreeBuild)
 	{
-		return;
-	}
-
-	for (const FInventoryItem& Ingredient : RecipeData->Ingredients)
-	{
-		const int32 IngredientAmountInInventory = InventoryContents->GetItemQuantity(Ingredient.Name);
-		
-		if (IngredientAmountInInventory < Ingredient.Quantity)
+		FInventoryContents* InventoryContents = OwnerInventoryComponent->GetContents();
+		if (InventoryContents == nullptr)
 		{
 			return;
 		}
-	}
 
-	for (const FInventoryItem& Ingredient : RecipeData->Ingredients)
-	{
-		OwnerInventoryComponent->RemoveItem(Ingredient);
+		for (const FInventoryItem& Ingredient : RecipeData->Ingredients)
+		{
+			const int32 IngredientAmountInInventory = InventoryContents->GetItemQuantity(Ingredient.Name);
+			
+			if (IngredientAmountInInventory < Ingredient.Quantity)
+			{
+				return;
+			}
+		}
+
+		for (const FInventoryItem& Ingredient : RecipeData->Ingredients)
+		{
+			OwnerInventoryComponent->RemoveItem(Ingredient);
+		}
 	}
 
 	FInventoryItem Yield;
